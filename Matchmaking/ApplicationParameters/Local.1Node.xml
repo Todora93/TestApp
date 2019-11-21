@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Application xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="fabric:/Matchmaking" xmlns="http://schemas.microsoft.com/2011/01/fabric">
+  <Parameters>
+    <Parameter Name="MatchmakerService_ASPNETCORE_ENVIRONMENT" Value="Development" />
+    <Parameter Name="MatchmakerService_InstanceCount" Value="1" />
+    <Parameter Name="RequestsService_ASPNETCORE_ENVIRONMENT" Value="Development" />
+    <Parameter Name="RequestsService_PartitionCount" Value="1" />
+    <Parameter Name="RequestsService_MinReplicaSetSize" Value="1" />
+    <Parameter Name="RequestsService_TargetReplicaSetSize" Value="1" />
+    <Parameter Name="WebService_ASPNETCORE_ENVIRONMENT" Value="Development" />
+    <Parameter Name="WebService_InstanceCount" Value="1" />
+    <Parameter Name="SimulationActorService_PartitionCount" Value="1" />
+    <Parameter Name="SimulationActorService_TargetReplicaSetSize" Value="1" />
+    <Parameter Name="SimulationActorService_MinReplicaSetSize" Value="1" />
+  </Parameters>
+</Application>
