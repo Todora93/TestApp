@@ -2,6 +2,9 @@
   "version": 3,
   "targets": {
     ".NETCoreApp,Version=v3.0": {
+      "Microsoft.AspNet.SignalR/2.4.1": {
+        "type": "package"
+      },
       "Microsoft.ServiceFabric/6.5.677": {
         "type": "package",
         "compile": {
@@ -283,6 +286,7 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v3.0",
         "dependencies": {
+          "Microsoft.AspNet.SignalR": "2.4.1",
           "Microsoft.ServiceFabric.Actors": "3.4.677"
         },
         "compile": {
@@ -294,6 +298,9 @@
       }
     },
     ".NETCoreApp,Version=v3.0/win7-x64": {
+      "Microsoft.AspNet.SignalR/2.4.1": {
+        "type": "package"
+      },
       "Microsoft.ServiceFabric/6.5.677": {
         "type": "package",
         "compile": {
@@ -427,6 +434,7 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v3.0",
         "dependencies": {
+          "Microsoft.AspNet.SignalR": "2.4.1",
           "Microsoft.ServiceFabric.Actors": "3.4.677"
         },
         "compile": {
@@ -439,6 +447,17 @@
     }
   },
   "libraries": {
+    "Microsoft.AspNet.SignalR/2.4.1": {
+      "sha512": "aYbLVE5toZwv/qaQ0BiIZRRwN/00WKYzGjaYUWIQuI91xZ50nnAymWD1sxCZFN9XXDRq8bevM5ET9GmAeOI/Nw==",
+      "type": "package",
+      "path": "microsoft.aspnet.signalr/2.4.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "microsoft.aspnet.signalr.2.4.1.nupkg.sha512",
+        "microsoft.aspnet.signalr.nuspec"
+      ]
+    },
     "Microsoft.ServiceFabric/6.5.677": {
       "sha512": "sEFTrttdHPsxH9dGokokmcKjspfzaNBGk0WTdu0s9iuUJ4cmwJrNmOEGjO884RxaNbHkds180roJItW+tsFDcg==",
       "type": "package",
@@ -939,6 +958,7 @@
   "projectFileDependencyGroups": {
     ".NETCoreApp,Version=v3.0": [
       "ActorService.Interfaces >= 1.0.0",
+      "Microsoft.AspNet.SignalR >= 2.4.1",
       "Microsoft.ServiceFabric.Actors >= 3.4.677"
     ]
   },
@@ -989,6 +1009,10 @@
     "frameworks": {
       "netcoreapp3.0": {
         "dependencies": {
+          "Microsoft.AspNet.SignalR": {
+            "target": "Package",
+            "version": "[2.4.1, )"
+          },
           "Microsoft.ServiceFabric.Actors": {
             "target": "Package",
             "version": "[3.4.677, )"

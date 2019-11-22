@@ -44,5 +44,10 @@ namespace WebService.Controllers
         {
             return View();
         }
+
+        public IActionResult Actor()
+        {
+            return View();
+        }
     }
 }

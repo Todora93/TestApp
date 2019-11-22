@@ -1,7 +1,10 @@
+using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Diagnostics.EventFlow.ServiceFabric;
 using Microsoft.ServiceFabric.Services.Runtime;
 using System;
 using System.Diagnostics;
+using System.Fabric.Description;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -30,6 +33,8 @@ namespace WebService
 
                     // Prevents this host process from terminating so services keeps running. 
                     Thread.Sleep(Timeout.Infinite);
+
+                    CreateWebHostBuilder().Build().Run();
                 }
             }
             catch (Exception e)
@@ -37,6 +42,11 @@ namespace WebService
                 ServiceEventSource.Current.ServiceHostInitializationFailed(e.ToString());
                 throw;
             }
+        }
+
+        public static IWebHostBuilder CreateWebHostBuilder()
+        {
+            return WebHost.CreateDefaultBuilder().UseStartup<Startup>();
         }
     }
 }

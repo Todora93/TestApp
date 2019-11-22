@@ -15,6 +15,7 @@ namespace RequestsService
     using System.Threading;
     using System.Text;
     using Microsoft.ServiceFabric.Actors.Client;
+    using Microsoft.ServiceFabric.Services.Remoting.Client;
 
     /// <summary>
     /// The FabricRuntime creates an instance of this class for each service type instance. 
@@ -28,12 +29,16 @@ namespace RequestsService
         private static TimeSpan TxTimeout = TimeSpan.FromSeconds(4);
         private static TimeSpan MatchmakeInterval = TimeSpan.FromSeconds(1);
 
+        private readonly StatefulServiceContext context;
+
         // todo: put in config
         private const int MatchSize = 2;
 
         public RequestsService(StatefulServiceContext context)
             : base(context)
-        { }
+        {
+            this.context = context;
+        }
 
         public async Task AddRequestAsync(UserRequest request)
         {
@@ -163,8 +168,6 @@ namespace RequestsService
         {
             return this.CreateServiceRemotingReplicaListeners();
         }
-
-        
 
         public async Task Matchmake(CancellationToken cancellationToken)
         {
@@ -307,9 +310,15 @@ namespace RequestsService
 
         #region Callbacks
 
-        public void StateUpdated(ActorId actorId, GameState gameState)
+        public async void StateUpdated(ActorId actorId, GameState gameState)
         {
             ServiceEventSource.Current.ServiceMessage(this.Context, $"Match state updated, ActorId: {actorId}, GameState: {gameState.ToString()}");
+
+            string serviceUri = $"{this.context.CodePackageActivationContext.ApplicationName}/WebService";
+
+            IWebService service = ServiceProxy.Create<IWebService>(new Uri(serviceUri));
+
+            await service.GameStateChanged(gameState);
         }
 
         public async void MatchFinished(ActorId actorId, GameState finalGameState)
@@ -341,6 +350,12 @@ namespace RequestsService
                 }
 
                 ServiceEventSource.Current.ServiceMessage(this.Context, $"Match finished, ActorId: {actorId}");
+
+                string serviceUri = $"{this.context.CodePackageActivationContext.ApplicationName}/WebService";
+
+                IWebService service = ServiceProxy.Create<IWebService>(new Uri(serviceUri));
+
+                await service.MatchFinished(finalGameState);
             }
             catch (Exception ex)
             {

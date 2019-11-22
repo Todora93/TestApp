@@ -9,6 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNet.SignalR" Version="2.4.1" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.1.0" />
     <PackageReference Include="Microsoft.Diagnostics.EventFlow.Inputs.EventSource" Version="1.4.6" />
     <PackageReference Include="Microsoft.Diagnostics.EventFlow.Outputs.ApplicationInsights" Version="1.4.0" />
     <PackageReference Include="Microsoft.Diagnostics.EventFlow.Outputs.StdOutput" Version="1.4.1" />
@@ -21,10 +23,12 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.0.0" />
     <PackageReference Include="Microsoft.ServiceFabric.AspNetCore.Kestrel" Version="3.4.677" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.0.0" />
+    <PackageReference Include="Npm" Version="3.5.2" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="wwwroot\images\" />
+    <Folder Include="wwwroot\lib\signalr\" />
   </ItemGroup>
 
   <ItemGroup>

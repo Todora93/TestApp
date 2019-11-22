@@ -10,6 +10,7 @@
       "ActorService/1.0.0": {
         "dependencies": {
           "ActorService.Interfaces": "1.0.0",
+          "Microsoft.AspNet.SignalR": "2.4.1",
           "Microsoft.ServiceFabric.Actors": "3.4.677",
           "runtimepack.Microsoft.NETCore.App.Runtime.win-x64": "3.0.0"
         },
@@ -848,6 +849,7 @@
           }
         }
       },
+      "Microsoft.AspNet.SignalR/2.4.1": {},
       "Microsoft.ServiceFabric/6.5.677": {
         "runtime": {
           "runtimes/win/lib/netstandard2.0/Microsoft.ServiceFabric.Internal.Strings.dll": {
@@ -981,6 +983,7 @@
       },
       "ActorService.Interfaces/1.0.0": {
         "dependencies": {
+          "Microsoft.AspNet.SignalR": "2.4.1",
           "Microsoft.ServiceFabric.Actors": "3.4.677"
         },
         "runtime": {
@@ -999,6 +1002,13 @@
       "type": "runtimepack",
       "serviceable": false,
       "sha512": ""
+    },
+    "Microsoft.AspNet.SignalR/2.4.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-aYbLVE5toZwv/qaQ0BiIZRRwN/00WKYzGjaYUWIQuI91xZ50nnAymWD1sxCZFN9XXDRq8bevM5ET9GmAeOI/Nw==",
+      "path": "microsoft.aspnet.signalr/2.4.1",
+      "hashPath": "microsoft.aspnet.signalr.2.4.1.nupkg.sha512"
     },
     "Microsoft.ServiceFabric/6.5.677": {
       "type": "package",

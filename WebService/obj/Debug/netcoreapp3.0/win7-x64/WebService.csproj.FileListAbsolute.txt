@@ -66,6 +66,7 @@ D:\Matchmaking\WebService\bin\Debug\netcoreapp3.0\win7-x64\System.Composition.Ho
 D:\Matchmaking\WebService\bin\Debug\netcoreapp3.0\win7-x64\System.Composition.Runtime.dll
 D:\Matchmaking\WebService\bin\Debug\netcoreapp3.0\win7-x64\System.Composition.TypedParts.dll
 D:\Matchmaking\WebService\bin\Debug\netcoreapp3.0\win7-x64\System.Configuration.ConfigurationManager.dll
+D:\Matchmaking\WebService\bin\Debug\netcoreapp3.0\win7-x64\System.Net.WebSockets.WebSocketProtocol.dll
 D:\Matchmaking\WebService\bin\Debug\netcoreapp3.0\win7-x64\System.Runtime.Caching.dll
 D:\Matchmaking\WebService\bin\Debug\netcoreapp3.0\win7-x64\System.Security.Cryptography.ProtectedData.dll
 D:\Matchmaking\WebService\bin\Debug\netcoreapp3.0\win7-x64\Validation.dll
@@ -490,6 +491,7 @@ D:\Matchmaking\WebService\obj\Debug\netcoreapp3.0\win7-x64\WebService.AssemblyIn
 D:\Matchmaking\WebService\obj\Debug\netcoreapp3.0\win7-x64\WebService.TagHelpers.input.cache
 D:\Matchmaking\WebService\obj\Debug\netcoreapp3.0\win7-x64\WebService.TagHelpers.output.cache
 D:\Matchmaking\WebService\obj\Debug\netcoreapp3.0\win7-x64\WebService.RazorCoreGenerate.cache
+D:\Matchmaking\WebService\obj\Debug\netcoreapp3.0\win7-x64\Razor\Views\Home\Actor.cshtml.g.cs
 D:\Matchmaking\WebService\obj\Debug\netcoreapp3.0\win7-x64\Razor\Views\Home\Index.cshtml.g.cs
 D:\Matchmaking\WebService\obj\Debug\netcoreapp3.0\win7-x64\Razor\Views\Home\Matchmaker.cshtml.g.cs
 D:\Matchmaking\WebService\obj\Debug\netcoreapp3.0\win7-x64\Razor\Views\Home\Privacy.cshtml.g.cs

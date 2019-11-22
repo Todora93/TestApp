@@ -4,7 +4,7 @@
     using System.Diagnostics.CodeAnalysis;
     using System.Runtime.Serialization;
 
-    [DataContract(Name = "UserRequest", Namespace ="SimulationActor.Interfaces")]
+    [DataContract(Name = "UserRequest", Namespace = "SimulationActor.Interfaces")]
     public sealed class UserRequest : IExtensibleDataObject, IEquatable<UserRequest>, IComparable<UserRequest>, IComparable
     {
         private ExtensionDataObject extensibleDataObject;
@@ -40,7 +40,7 @@
 
         public override string ToString()
         {
-            return $"UserId: {UserId}";
+            return $"ID: {UserId}";
         }
     }
 }

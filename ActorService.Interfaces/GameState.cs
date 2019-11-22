@@ -40,11 +40,12 @@ namespace MyActorService.Interfaces
             }
 
             StringBuilder builder = new StringBuilder();
-            builder.Append($"GameTime: {GameTimeSec}[sec]\n");
+            builder.Append($"GameTime: {GameTimeSec}s");
+            builder.Append("    ");
             foreach (PlayerState state in State)
             {
                 builder.Append(state.ToString());
-                builder.Append("/n");
+                builder.Append("    ");
             }
             return builder.ToString();
         }

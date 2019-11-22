@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 
 namespace MyActorService.Interfaces
 {
@@ -29,7 +27,7 @@ namespace MyActorService.Interfaces
 
         public override string ToString()
         {
-            return $"UserRequest: {User.ToString()}, Value: {Value}";
+            return $"(User: {User.ToString()}, State: {Value})";
         }
     }
 }

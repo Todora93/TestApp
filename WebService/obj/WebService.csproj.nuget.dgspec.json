@@ -43,6 +43,10 @@
       "frameworks": {
         "netcoreapp3.0": {
           "dependencies": {
+            "Microsoft.AspNet.SignalR": {
+              "target": "Package",
+              "version": "[2.4.1, )"
+            },
             "Microsoft.ServiceFabric.Actors": {
               "target": "Package",
               "version": "[3.4.677, )"
@@ -115,6 +119,10 @@
       "frameworks": {
         "netcoreapp3.0": {
           "dependencies": {
+            "Microsoft.AspNet.SignalR": {
+              "target": "Package",
+              "version": "[2.4.1, )"
+            },
             "Microsoft.Diagnostics.EventFlow.Inputs.EventSource": {
               "target": "Package",
               "version": "[1.4.6, )"
@@ -253,6 +261,14 @@
       "frameworks": {
         "netcoreapp3.0": {
           "dependencies": {
+            "Microsoft.AspNet.SignalR": {
+              "target": "Package",
+              "version": "[2.4.1, )"
+            },
+            "Microsoft.AspNetCore.SignalR": {
+              "target": "Package",
+              "version": "[1.1.0, )"
+            },
             "Microsoft.Diagnostics.EventFlow.Inputs.EventSource": {
               "target": "Package",
               "version": "[1.4.6, )"
@@ -290,6 +306,10 @@
             "Microsoft.VisualStudio.Web.CodeGeneration.Design": {
               "target": "Package",
               "version": "[3.0.0, )"
+            },
+            "Npm": {
+              "target": "Package",
+              "version": "[3.5.2, )"
             }
           },
           "imports": [

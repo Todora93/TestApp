@@ -7,17 +7,31 @@ namespace WebService
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.ServiceFabric.Services.Communication.AspNetCore;
     using Microsoft.ServiceFabric.Services.Communication.Runtime;
+    using Microsoft.ServiceFabric.Services.Remoting.Runtime;
     using Microsoft.ServiceFabric.Services.Runtime;
     using System.Net.Http;
+    using MyActorService.Interfaces;
+    using Microsoft.AspNetCore.SignalR;
+    using System.Threading.Tasks;
+    using System.Linq;
 
     /// <summary>
     /// The FabricRuntime creates an instance of this class for each service type instance. 
     /// </summary>
-    internal sealed class WebService : StatelessService
+    internal sealed class WebService : StatelessService, IWebService
     {
         public WebService(StatelessServiceContext context)
-            : base(context)
-        { }
+            : base(context) { }
+
+        public async Task GameStateChanged(GameState gameState)
+        {
+            await Startup.hubContext.Clients.All.SendAsync("ReceiveGameState",$"[STATE]: {gameState.ToString()}");
+        }
+
+        public async Task MatchFinished(GameState finalState)
+        {
+            await Startup.hubContext.Clients.All.SendAsync("GameFinished", $"[MATCH ENDED]: {finalState.ToString()}");
+        }
 
         /// <summary>
         /// Optional override to create listeners (like tcp, http) for this service instance.
@@ -25,7 +39,7 @@ namespace WebService
         /// <returns>The collection of listeners.</returns>
         protected override IEnumerable<ServiceInstanceListener> CreateServiceInstanceListeners()
         {
-            return new ServiceInstanceListener[]
+            var listeners = new ServiceInstanceListener[]
             {
                 new ServiceInstanceListener(serviceContext =>
                     new KestrelCommunicationListener(serviceContext, "ServiceEndpoint", (url, listener) =>
@@ -45,8 +59,10 @@ namespace WebService
                                     .UseServiceFabricIntegration(listener, ServiceFabricIntegrationOptions.None)
                                     .UseUrls(url)
                                     .Build();
-                    }))
+                    })),
             };
+
+            return listeners.Concat(this.CreateServiceRemotingInstanceListeners());
         }
     }
 }
