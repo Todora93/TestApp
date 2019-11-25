@@ -3705,6 +3705,7 @@
       "ActorService.Interfaces/1.0.0": {
         "dependencies": {
           "Microsoft.AspNet.SignalR": "2.4.1",
+          "Microsoft.AspNetCore.SignalR": "1.1.0",
           "Microsoft.ServiceFabric.Actors": "3.4.677"
         },
         "compile": {
@@ -7724,6 +7725,7 @@
       "ActorService.Interfaces/1.0.0": {
         "dependencies": {
           "Microsoft.AspNet.SignalR": "2.4.1",
+          "Microsoft.AspNetCore.SignalR": "1.1.0",
           "Microsoft.ServiceFabric.Actors": "3.4.677"
         },
         "runtime": {

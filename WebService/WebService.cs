@@ -25,12 +25,16 @@ namespace WebService
 
         public async Task GameStateChanged(GameState gameState)
         {
-            await Startup.hubContext.Clients.All.SendAsync("ReceiveGameState",$"[STATE]: {gameState.ToString()}");
+            var connectionIds = GetConnectionIds(gameState);
+            await Startup.hubContext.Clients.Clients(connectionIds).SendAsync("ReceiveGameState", $"[STATE]: {gameState.ToString()}");
+
+            //await Startup.hubContext.Clients.All.SendAsync("ReceiveGameState",$"[STATE]: {gameState.ToString()}");
         }
 
         public async Task MatchFinished(GameState finalState)
         {
-            await Startup.hubContext.Clients.All.SendAsync("GameFinished", $"[MATCH ENDED]: {finalState.ToString()}");
+            var connectionIds = GetConnectionIds(finalState);
+            await Startup.hubContext.Clients.Clients(connectionIds).SendAsync("GameFinished", $"[MATCH ENDED]: {finalState.ToString()}");
         }
 
         /// <summary>
@@ -63,6 +67,16 @@ namespace WebService
             };
 
             return listeners.Concat(this.CreateServiceRemotingInstanceListeners());
+        }
+
+        private List<string> GetConnectionIds(GameState gameState)
+        {
+            var connectionIds = new List<string>();
+            foreach (var user in gameState.State)
+            {
+                connectionIds.AddRange(Startup.userConnectionManager.GetUserConnections(user.User.UserId.ToString()));
+            }
+            return connectionIds;
         }
     }
 }

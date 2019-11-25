@@ -484,3 +484,4 @@ D:\Matchmaking\RequestsService\obj\Debug\netcoreapp3.0\win7-x64\RequestsService.
 D:\Matchmaking\RequestsService\obj\Debug\netcoreapp3.0\win7-x64\RequestsService.csproj.CopyComplete
 D:\Matchmaking\RequestsService\obj\Debug\netcoreapp3.0\win7-x64\RequestsService.dll
 D:\Matchmaking\RequestsService\obj\Debug\netcoreapp3.0\win7-x64\RequestsService.pdb
+D:\Matchmaking\RequestsService\bin\Debug\netcoreapp3.0\win7-x64\System.Net.WebSockets.WebSocketProtocol.dll

@@ -18,11 +18,6 @@
         [DataMember]
         public long UserId { get; set; }
 
-        public UserRequest(long userId)
-        {
-            UserId = userId;
-        }
-
         public int CompareTo([AllowNull] UserRequest other)
         {
             return UserId.CompareTo(other.UserId);

@@ -1,5 +1,6 @@
 ﻿/* This function calls the RequestsController's HTTP PUT method to insert a new UserRequest in the reliable queue in the RequestsService*/
 function addRequestValue() {
+
     var data = {
         UserId: keyInput.value,
     };
@@ -157,7 +158,7 @@ function renderRequestsQueue(list) {
         tdKey.appendChild(document.createTextNode(list[i].userId));
         tr.appendChild(tdKey);
         var tdValue = document.createElement('td');
-        tdValue.appendChild(document.createTextNode(list[i].userId));
+        tdValue.appendChild(document.createTextNode(list[i].connectionId));
         tr.appendChild(tdValue);
         table.appendChild(tr);
     }

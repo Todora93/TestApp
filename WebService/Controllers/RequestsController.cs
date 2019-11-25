@@ -11,6 +11,7 @@
     using Microsoft.ServiceFabric.Services.Remoting.Client;
     using Newtonsoft.Json;
     using MyActorService.Interfaces;
+    using System.Threading;
 
     [Route("api/[controller]")]
     public class RequestsController : Controller

@@ -1,11 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using MyActorService.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -16,6 +13,8 @@ namespace WebService
     {
         public static IServiceProvider serviceProvider;
         public static IHubContext<MyHub> hubContext;
+
+        public static IUserConnectionManager userConnectionManager;
 
         public Startup(IConfiguration configuration)
         {
@@ -29,6 +28,10 @@ namespace WebService
         {
             services.AddControllersWithViews();
             services.AddSignalR();
+
+            services.AddSingleton<IUserConnectionManager, UserConnectionManager>();
+
+            services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -52,6 +55,7 @@ namespace WebService
             {
                 serviceProvider = context.RequestServices;
                 hubContext = context.RequestServices.GetRequiredService<IHubContext<MyHub>>();
+                userConnectionManager = context.RequestServices.GetRequiredService<IUserConnectionManager>();
 
                 await next.Invoke();
             });

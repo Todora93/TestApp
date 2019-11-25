@@ -400,3 +400,4 @@ D:\Matchmaking\MatchmakerService\obj\Debug\netcoreapp3.0\win7-x64\MatchmakerServ
 D:\Matchmaking\MatchmakerService\obj\Debug\netcoreapp3.0\win7-x64\MatchmakerService.csproj.CopyComplete
 D:\Matchmaking\MatchmakerService\obj\Debug\netcoreapp3.0\win7-x64\MatchmakerService.dll
 D:\Matchmaking\MatchmakerService\obj\Debug\netcoreapp3.0\win7-x64\MatchmakerService.pdb
+D:\Matchmaking\MatchmakerService\bin\Debug\netcoreapp3.0\win7-x64\System.Net.WebSockets.WebSocketProtocol.dll

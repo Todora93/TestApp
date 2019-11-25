@@ -1,72 +1,84 @@
 ﻿@{
     ViewData["Title"] = "SF OneApp - Requests";
 }
-<div class="row">
-    <!-- Heading row -->
     <div class="row">
-        <div class="col-md-12">
-            <h1>Requests Backend Service</h1>
-            <p>A stateful Reliable Service built using ASP.NET Core and Reliable Collections. The service exposes an HTTP endpoint with an API hosted with Kestrel. The services store key-value pairs in a Reliable Dictionary and can be partitioned based on the first letter of the key.</p>
-            <ul>
-                <li>
-                    <a href="https://docs.microsoft.com/azure/service-fabric/service-fabric-reliable-services-introduction" target="_blank">
-                        Learn more about Reliable Services
-                    </a>
-                </li>
-                <li>
-                    <a href="https://docs.microsoft.com/azure/service-fabric/service-fabric-reliable-services-reliable-collections" target="_blank">
-                        Learn more Reliable Collections
-                    </a>
-                </li>
-                <li>
-                    <a href="https://docs.microsoft.com/azure/service-fabric/service-fabric-reliable-services-communication-aspnetcore" target="_blank">
-                        Learn more about ASP.NET Core in Reliable Services
-                    </a>
-                </li>
-            </ul>
-            </p>
+        <!-- Heading row -->
+        <div class="row">
+            <div class="col-md-12">
+                <h1>Requests Backend Service</h1>
+            </div>
         </div>
-    </div>
-    <!-- Input, Table and Messages -->
-    <div class="row">
-        <div class="panel panel-primary">
-            <div class="panel-body">
-                <p>The services store key value pairs in partitions based on the first letter of the key. Add a key value pair to the service below and/or get all the key value pairs from the stateful service.</p>
-                <!-- Input and Table -->
-                <div class="col-md-6">
-                    <!-- Input -->
-                    <div class="row">
-                        <div class="col-md-6">
-                            <input type="text" class="form-control" id="keyInput" placeholder="key" tabindex="1">
+        <!-- Input, Table and Messages -->
+        <div class="row">
+            <div class="panel panel-primary">
+                <div class="panel-body">
+                    <p>The services store key value pairs in partitions based on the first letter of the key. Add a key value pair to the service below and/or get all the key value pairs from the stateful service.</p>
+                    <!-- Input and Table -->
+                    <div class="col-md-6">
+                        <!-- Input -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <input type="text" class="form-control" id="keyInput" placeholder="key" tabindex="1">
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <input type="text" class="form-control" id="valueInput" placeholder="value" tabindex="2">
+                        <div class="row top-buffer">
+                            <div class="col-md-6">
+                                <button class="btn btn-primary btn-block" onclick="addRequestValue()" type="button" id="addRequestValue" tabindex="3">Add request</button>
+                            </div>
+                            <div class="col-md-6">
+                                <button class="btn btn-primary btn-block" onclick="getAllRequests()" type="button" id="getAllRequests" tabindex="4">Get All requests in queue</button>
+                            </div>
+                            <div class="col-md-6">
+                                <button class="btn btn-primary btn-block" onclick="deleteAllRequests()" type="button" id="deleteAllRequests" tabindex="5">Delete All requests in queue</button>
+                            </div>
+                        </div>
+                        <!-- Table -->
+                        <div class="row top-buffer">
+                            <div class="col-md-12 table-responsive" style="overflow: auto; height:100px">
+                                <table class="table table-striped" id="statefulBackendServiceTable">
+                                    <tr>
+                                        <th>Key</th>
+                                        @*<th>Value</th>*@
+                                    </tr>
+                                </table>
+                            </div>
                         </div>
                     </div>
-                    <div class="row top-buffer">
-                        <div class="col-md-6">
-                            <button class="btn btn-primary btn-block" onclick="addRequestValue()" type="button" id="addRequestValue" tabindex="3">Add request</button>
-                        </div>
-                        <div class="col-md-6">
-                            <button class="btn btn-primary btn-block" onclick="getAllRequests()" type="button" id="getAllRequests" tabindex="4">Get All requests in queue</button>
-                        </div>
-                        <div class="col-md-6">
-                            <button class="btn btn-primary btn-block" onclick="deleteAllRequests()" type="button" id="deleteAllRequests" tabindex="4">Delete All requests in queue</button>
-                        </div>
-                    </div>
-                    <!-- Table -->
-                    <div class="row top-buffer">
-                        <div class="col-md-12 table-responsive" style="overflow: auto; height:150px">
-                            <table class="table table-striped" id="statefulBackendServiceTable">
-                                <tr>
-                                    <th>Key</th>
-                                    <th>Value</th>
-                                </tr>
-                            </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="panel panel-primary">
+                <div class="panel-body">
+                    <div class="col-md-12">
+                        <p>The service performs matchmaking on demand.</p>
+                        <!-- Button -->
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="panel panel-default">
+                                    <div class="panel-heading">
+                                        <button class="btn btn-primary btn-block" onclick="matchmake()" type="button" id="matchmake" tabindex="6">Matchmake</button>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-6">&nbsp;</div>
+                                        <div class="col-6">
+                                            <ul id="messagesList"></ul>
+                                        </div>
+                                    </div>
+
+                                    @*<div class="panel-body">
+                                        <h1 class="text-center no-margin" id="countDisplay">0</h1>
+                                    </div>*@
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+
+
+<script src="~/lib/signalr/signalr.js"></script>
+<script src="~/js/requests.js?v=5"></script>
