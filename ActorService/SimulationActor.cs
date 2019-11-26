@@ -6,6 +6,7 @@ namespace MyActorService
     using global::MyActorService.Interfaces;
     using Microsoft.ServiceFabric.Actors;
     using Microsoft.ServiceFabric.Actors.Runtime;
+    using Microsoft.ServiceFabric.Data;
 
     /// <remarks>
     /// This class represents an actor.
@@ -63,16 +64,61 @@ namespace MyActorService
             }
         }
 
+        public async Task ApplyInput(UserRequest user, UserInput input)
+        {
+            ConditionalValue<GameState> gameState = await this.StateManager.TryGetStateAsync<GameState>(GameStateName);
+
+            if (!gameState.HasValue)
+            {
+                // value doesn't exists
+                throw new InvalidOperationException("Cannot find game state.");
+            }
+
+            ActorEventSource.Current.ActorMessage(this, $"Processing user: {user.ToString()}. Current input: {input.ToString()}");
+
+            var playerState = gameState.Value.GetPlayerState(user);
+            if (playerState == null)
+            {
+                ActorEventSource.Current.ActorMessage(this, $"Cannot find user {user}");
+                return;
+            }
+
+            ApplyInput(playerState, input); 
+            
+            await this.StateManager.SetStateAsync<GameState>(GameStateName, gameState.Value);
+        }
+
+        private void ApplyInput(PlayerState state, UserInput input)
+        {
+            switch (input.Input)
+            {
+                case 0:
+                    state.Value += 100;
+                    break;
+                case 1:
+                    state.Value -= 100;
+                    break;
+                case 2:
+                    state.Value *= 100;
+                    break;
+                case 3:
+                    state.Value /= 100;
+                    break;
+                default:
+                    break;
+            }
+        }
+
         private async Task Update(object state)
         {
             var gameState = await this.StateManager.GetStateAsync<GameState>(GameStateName);
 
             ActorEventSource.Current.ActorMessage(this, $"Processing actorID: {this.Id}. Current value: {gameState.ToString()}");
 
-            foreach (PlayerState player in gameState.State)
-            {
-                player.Value++;
-            }
+            //foreach (PlayerState player in gameState.State)
+            //{
+            //    player.Value++;
+            //}
 
             gameState.GameTimeSec++;
 

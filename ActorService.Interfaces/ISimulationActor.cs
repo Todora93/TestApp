@@ -12,5 +12,7 @@ namespace MyActorService.Interfaces
     public interface ISimulationActor : IActor, IActorEventPublisher<ISimulationEvents>
     {
         public Task SimulateMatch(List<UserRequest> players);
+
+        public Task ApplyInput(UserRequest user, UserInput input);
     }
 }

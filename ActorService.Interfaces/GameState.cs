@@ -22,6 +22,11 @@ namespace MyActorService.Interfaces
         [DataMember]
         public long GameTimeSec { get; set; }
 
+        public PlayerState GetPlayerState(UserRequest user)
+        {
+            return State.Exists(u => u.User.Equals(user)) ? State.Find(u => u.User.Equals(user)) : null;
+        }
+
         public GameState(List<UserRequest> users)
         {
             State = new List<PlayerState>();

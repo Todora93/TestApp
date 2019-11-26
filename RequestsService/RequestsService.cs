@@ -282,10 +282,14 @@ namespace RequestsService
 
                 string actorServiceUri = $"{this.Context.CodePackageActivationContext.ApplicationName}/SimulationActorService";
 
+                // Create actor simulation
                 ISimulationActor simulationActor = ActorProxy.Create<ISimulationActor>(actorId, new Uri(actorServiceUri));
-
                 await simulationActor.SimulateMatch(players);
                 await simulationActor.SubscribeAsync<ISimulationEvents>(this);
+
+                // Notify clients
+                IWebService webService = ServiceProxy.Create<IWebService>(new Uri($"{this.context.CodePackageActivationContext.ApplicationName}/WebService"));
+                await webService.StartGame(actorId, players);
 
                 StringBuilder builder = new StringBuilder();
                 builder.Append($"Created new match\n ActorID: {actorId}\n");
@@ -361,6 +365,16 @@ namespace RequestsService
             {
                 ServiceEventSource.Current.Message(string.Format("MatchFinished: Exception {0}: {1}", actorId, ex));
                 throw;
+            }
+        }
+
+        public async Task<bool> GetActiveActorId(ActorId actorId)
+        {
+            var userActors = await this.StateManager.GetOrAddAsync<IReliableDictionary<ActorId, List<UserRequest>>>(InUseActorsMapName);
+
+            using (var tx = this.StateManager.CreateTransaction())
+            {
+                return await userActors.ContainsKeyAsync(tx, actorId);
             }
         }
 

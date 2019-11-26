@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Security.Policy;
+using System.Fabric;
 
 namespace WebService
 {
@@ -13,6 +15,7 @@ namespace WebService
     {
         public static IServiceProvider serviceProvider;
         public static IHubContext<MyHub> hubContext;
+        public static FabricClient fabricClient;
 
         public static IUserConnectionManager userConnectionManager;
 
@@ -27,11 +30,13 @@ namespace WebService
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
-            services.AddSignalR();
+            services.AddSignalR(hubOptions =>
+            {
+                hubOptions.EnableDetailedErrors = true;
+            });
 
             services.AddSingleton<IUserConnectionManager, UserConnectionManager>();
-
-            services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();
+            services.AddSingleton<IWebService, WebService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -56,6 +61,7 @@ namespace WebService
                 serviceProvider = context.RequestServices;
                 hubContext = context.RequestServices.GetRequiredService<IHubContext<MyHub>>();
                 userConnectionManager = context.RequestServices.GetRequiredService<IUserConnectionManager>();
+                fabricClient = context.RequestServices.GetRequiredService<FabricClient>();
 
                 await next.Invoke();
             });

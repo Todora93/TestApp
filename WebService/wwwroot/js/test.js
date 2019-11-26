@@ -1,6 +1,4 @@
-﻿
-
-var mk = {};
+﻿var mk = {};
 
 mk.controllers = {};
 
