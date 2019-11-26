@@ -509,3 +509,4 @@ D:\Matchmaking\WebService\obj\Debug\netcoreapp3.0\win7-x64\WebService.dll
 D:\Matchmaking\WebService\obj\Debug\netcoreapp3.0\win7-x64\WebService.pdb
 D:\Matchmaking\WebService\bin\Debug\netcoreapp3.0\win7-x64\wwwroot\js\matchmaker.js
 D:\Matchmaking\WebService\bin\Debug\netcoreapp3.0\win7-x64\wwwroot\js\site.js
+D:\Matchmaking\WebService\bin\Debug\netcoreapp3.0\win7-x64\MyHub.cs

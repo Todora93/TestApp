@@ -82,15 +82,18 @@ function matchmake() {
     http.onreadystatechange = function () {
         if (http.readyState === 4) {
             end = new Date().getTime();
-            if (http.status < 400) {
-                returnData = JSON.parse(http.responseText);
-                if (returnData) {
-                    countDisplay.innerHTML = returnData.count;
-                    updateFooter(http, (end - start));
-                }
-            } else {
-                updateFooter(http, (end - start));
-            }
+
+            updateFooter(http, (end - start));
+
+            //if (http.status < 400) {
+            //    returnData = JSON.parse(http.responseText);
+            //    if (returnData) {
+            //        countDisplay.innerHTML = returnData.count;
+            //        updateFooter(http, (end - start));
+            //    }
+            //} else {
+            //    updateFooter(http, (end - start));
+            //}
         }
     };
     start = new Date().getTime();
