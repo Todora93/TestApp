@@ -2,9 +2,9 @@
 using Microsoft.AspNetCore.SignalR;
 using System.Threading.Tasks;
 using System;
-using System.Runtime.InteropServices;
 using Microsoft.ServiceFabric.Actors;
 using System.Globalization;
+using System.Collections.Generic;
 
 namespace WebService
 {
@@ -19,25 +19,54 @@ namespace WebService
             _webService = webService;
         }
 
-        // todo delete
-        public async Task SendMessage(string user, string message)
+        public async Task SendInput(string userName, string actorId, bool[] input)
         {
-            await Clients.All.SendAsync("ReceiveMessage", user, message);
-        }
-
-        // todo delete
-        public async Task SendInput(string user, string message)
-        {
-            await Clients.Caller.SendAsync("ReceiveMessage", message);
-        }
-
-        public async Task SendInputWithParams(string userId, string actorId, int input)
-        {
-            var userRequest = new UserRequest() { UserId = Int64.Parse(userId) };
+            var user = new UserRequest(userName);
             var userInput = new UserInput(input);
             var actor = new ActorId(Int64.Parse(actorId));
 
-            await _webService.SendInput(userRequest, actor, userInput);
+            await _webService.SendInput(user, actor, userInput);
+        }
+
+        public async Task SendMove(string userName, string actorId, object move)
+        {
+            var user = new UserRequest(userName);
+            var actor = new ActorId(Int64.Parse(actorId));
+
+            var opponent = await _webService.GetOpponent(user, actor);
+            var connectionIds = _userConnectionManager.GetUserConnections(opponent.UserName);
+
+            await Clients.Clients(connectionIds).SendAsync("ReceiveMove", move);
+        }
+
+        public async Task LifeUpdate(string userName, string actorId, int life)
+        {
+            var user = new UserRequest(userName);
+            var actor = new ActorId(Int64.Parse(actorId));
+
+            var opponent = await _webService.GetOpponent(user, actor);
+            var connectionIds = _userConnectionManager.GetUserConnections(opponent.UserName);
+
+            await Clients.Clients(connectionIds).SendAsync("LifeUpdate", life);
+        }
+
+        public async Task PositionUpdate(string userName, string actorId, int x, int y)
+        {
+            var user = new UserRequest(userName);
+            var actor = new ActorId(Int64.Parse(actorId));
+
+            var opponent = await _webService.GetOpponent(user, actor);
+            var connectionIds = _userConnectionManager.GetUserConnections(opponent.UserName);
+
+            await Clients.Clients(connectionIds).SendAsync("PositionUpdate", x, y);
+        }
+
+        public async Task FighterDead(string userName, string actorId)
+        {
+            var user = new UserRequest(userName);
+            var actor = new ActorId(Int64.Parse(actorId));
+
+            await _webService.FighterDead(user, actor);
         }
 
         public string GetConnectionId()
@@ -55,6 +84,16 @@ namespace WebService
             var connectionId = Context.ConnectionId;
             _userConnectionManager.RemoveUserConnection(connectionId);
             var value = await Task.FromResult(0);//adding dump code to follow the template of Hub > OnDisconnectedAsync
+        }
+
+        private List<string> GetConnectionIds(List<UserRequest> users)
+        {
+            var connectionIds = new List<string>();
+            foreach(var user in users)
+            {
+                connectionIds.AddRange(_userConnectionManager.GetUserConnections(user.UserName));
+            }
+            return connectionIds;
         }
     }
 }

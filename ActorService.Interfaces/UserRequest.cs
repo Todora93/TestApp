@@ -18,24 +18,34 @@
         [DataMember]
         public long UserId { get; set; }
 
+        [DataMember]
+        public string UserName { get; set; }
+
+        public UserRequest() { }
+
+        public UserRequest(string userName)
+        {
+            UserName = userName;
+        }
+
         public int CompareTo([AllowNull] UserRequest other)
         {
-            return UserId.CompareTo(other.UserId);
+            return UserName.CompareTo(other.UserName);
         }
 
         public int CompareTo(object obj)
         {
-            return UserId.CompareTo(((UserRequest)obj).UserId);
+            return UserName.CompareTo(((UserRequest)obj).UserName);
         }
 
         public bool Equals([AllowNull] UserRequest other)
         {
-            return UserId == other.UserId;
+            return UserName.Equals(other.UserName);
         }
 
         public override string ToString()
         {
-            return $"ID: {UserId}";
+            return $"User: {UserName}";
         }
     }
 }

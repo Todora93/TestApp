@@ -28,6 +28,24 @@ function addRequestValue() {
 }
 
 
+function addRequestValue2(userName) {
+    var data = {
+        UserName: userName,
+    };
+
+    var http = new XMLHttpRequest();
+    http.onreadystatechange = function () {
+        if (http.readyState === 4) {
+            end = new Date().getTime();
+            updateFooter(http, (end - start));
+        }
+    };
+    start = new Date().getTime();
+    http.open("PUT", "/api/Requests/?c=" + start);
+    http.setRequestHeader("content-type", "application/json");
+    http.send(JSON.stringify(data));
+}
+
 /* This function calls the Requests's HTTP GET method to get a collection of request GUIDs from the reliable queue in the RequestsService */
 function getAllRequests() {
     var http = new XMLHttpRequest();
@@ -208,9 +226,9 @@ function toggleFooter(option) {
 function updateFooter(http, timeTaken) {
     toggleFooter(1);
     if (http.status < 299) {
-        statusPanel.className = 'panel panel-success';
-        statusPanelHeading.innerHTML = http.status + ' ' + http.statusText;
-        statusPanelBody.innerHTML = 'Result returned in ' + timeTaken.toString() + ' ms from ' + http.responseURL;
+        //statusPanel.className = 'panel panel-success';
+        //statusPanelHeading.innerHTML = http.status + ' ' + http.statusText;
+        //statusPanelBody.innerHTML = 'Result returned in ' + timeTaken.toString() + ' ms from ' + http.responseURL;
     }
     else {
         statusPanel.className = 'panel panel-danger';

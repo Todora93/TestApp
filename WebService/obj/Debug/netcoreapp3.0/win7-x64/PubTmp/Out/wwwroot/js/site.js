@@ -1,4 +1,5 @@
-﻿/* This function calls the RequestsController's HTTP PUT method to insert a new UserRequest in the reliable queue in the RequestsService*/
+﻿
+/* This function calls the RequestsController's HTTP PUT method to insert a new UserRequest in the reliable queue in the RequestsService*/
 function addRequestValue() {
 
     var data = {
@@ -10,8 +11,8 @@ function addRequestValue() {
         if (http.readyState === 4) {
             end = new Date().getTime();
             if (http.status < 400) {
-                keyInput.value = '';
-                valueInput.value = '';
+                //keyInput.value = '';
+                //valueInput.value = '';
                 keyInput.focus();
                 updateFooter(http, (end - start));
             } else {
@@ -26,6 +27,24 @@ function addRequestValue() {
     http.send(JSON.stringify(data));
 }
 
+
+function addRequestValue2(userId) {
+    var data = {
+        UserId: userId,
+    };
+
+    var http = new XMLHttpRequest();
+    http.onreadystatechange = function () {
+        if (http.readyState === 4) {
+            end = new Date().getTime();
+            updateFooter(http, (end - start));
+        }
+    };
+    start = new Date().getTime();
+    http.open("PUT", "/api/Requests/?c=" + start);
+    http.setRequestHeader("content-type", "application/json");
+    http.send(JSON.stringify(data));
+}
 
 /* This function calls the Requests's HTTP GET method to get a collection of request GUIDs from the reliable queue in the RequestsService */
 function getAllRequests() {
@@ -81,15 +100,18 @@ function matchmake() {
     http.onreadystatechange = function () {
         if (http.readyState === 4) {
             end = new Date().getTime();
-            if (http.status < 400) {
-                returnData = JSON.parse(http.responseText);
-                if (returnData) {
-                    countDisplay.innerHTML = returnData.count;
-                    updateFooter(http, (end - start));
-                }
-            } else {
-                updateFooter(http, (end - start));
-            }
+
+            updateFooter(http, (end - start));
+
+            //if (http.status < 400) {
+            //    returnData = JSON.parse(http.responseText);
+            //    if (returnData) {
+            //        countDisplay.innerHTML = returnData.count;
+            //        updateFooter(http, (end - start));
+            //    }
+            //} else {
+            //    updateFooter(http, (end - start));
+            //}
         }
     };
     start = new Date().getTime();
@@ -204,9 +226,9 @@ function toggleFooter(option) {
 function updateFooter(http, timeTaken) {
     toggleFooter(1);
     if (http.status < 299) {
-        statusPanel.className = 'panel panel-success';
-        statusPanelHeading.innerHTML = http.status + ' ' + http.statusText;
-        statusPanelBody.innerHTML = 'Result returned in ' + timeTaken.toString() + ' ms from ' + http.responseURL;
+        //statusPanel.className = 'panel panel-success';
+        //statusPanelHeading.innerHTML = http.status + ' ' + http.statusText;
+        //statusPanelBody.innerHTML = 'Result returned in ' + timeTaken.toString() + ' ms from ' + http.responseURL;
     }
     else {
         statusPanel.className = 'panel panel-danger';

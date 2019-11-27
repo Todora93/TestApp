@@ -45,11 +45,11 @@
 
                 IRequestManager service = ServiceProxy.Create<IRequestManager>(new Uri(serviceUri), key);
 
-                var userId = JsonConvert.DeserializeObject<UserRequest>(request.ToString());
+                var user = JsonConvert.DeserializeObject<UserRequest>(request.ToString());
 
-                await service.AddRequestAsync(userId);
+                await service.AddRequestAsync(user);
 
-                ServiceEventSource.Current.Message($"Added new user request: {userId.ToString()}!");
+                ServiceEventSource.Current.Message($"Added new user request: {user.ToString()}!");
 
                 return this.Ok();
             }

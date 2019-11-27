@@ -35,6 +35,7 @@ D:\Matchmaking\MatchmakerService\bin\Debug\netcoreapp3.0\win7-x64\Microsoft.Serv
 D:\Matchmaking\MatchmakerService\bin\Debug\netcoreapp3.0\win7-x64\Microsoft.ServiceFabric.Services.dll
 D:\Matchmaking\MatchmakerService\bin\Debug\netcoreapp3.0\win7-x64\Microsoft.ServiceFabric.Services.Remoting.dll
 D:\Matchmaking\MatchmakerService\bin\Debug\netcoreapp3.0\win7-x64\Newtonsoft.Json.dll
+D:\Matchmaking\MatchmakerService\bin\Debug\netcoreapp3.0\win7-x64\System.Net.WebSockets.WebSocketProtocol.dll
 D:\Matchmaking\MatchmakerService\bin\Debug\netcoreapp3.0\win7-x64\Validation.dll
 D:\Matchmaking\MatchmakerService\bin\Debug\netcoreapp3.0\win7-x64\libuv.dll
 D:\Matchmaking\MatchmakerService\bin\Debug\netcoreapp3.0\win7-x64\Microsoft.CSharp.dll
@@ -400,4 +401,3 @@ D:\Matchmaking\MatchmakerService\obj\Debug\netcoreapp3.0\win7-x64\MatchmakerServ
 D:\Matchmaking\MatchmakerService\obj\Debug\netcoreapp3.0\win7-x64\MatchmakerService.csproj.CopyComplete
 D:\Matchmaking\MatchmakerService\obj\Debug\netcoreapp3.0\win7-x64\MatchmakerService.dll
 D:\Matchmaking\MatchmakerService\obj\Debug\netcoreapp3.0\win7-x64\MatchmakerService.pdb
-D:\Matchmaking\MatchmakerService\bin\Debug\netcoreapp3.0\win7-x64\System.Net.WebSockets.WebSocketProtocol.dll

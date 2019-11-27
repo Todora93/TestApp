@@ -33,6 +33,9 @@
 
     mk.controllers = {};
 
+
+    // ------------------ BASE --------------------
+
     // options - callback, fighters, arena
     mk.controllers.Base = function (options) {
         if (!options)

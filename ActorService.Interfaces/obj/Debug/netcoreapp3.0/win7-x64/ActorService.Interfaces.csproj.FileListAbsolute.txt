@@ -1,8 +1,8 @@
 D:\Matchmaking\ActorService.Interfaces\bin\Debug\netcoreapp3.0\win7-x64\ActorService.Interfaces.deps.json
 D:\Matchmaking\ActorService.Interfaces\bin\Debug\netcoreapp3.0\win7-x64\ActorService.Interfaces.dll
 D:\Matchmaking\ActorService.Interfaces\bin\Debug\netcoreapp3.0\win7-x64\ActorService.Interfaces.pdb
+D:\Matchmaking\ActorService.Interfaces\obj\Debug\netcoreapp3.0\win7-x64\ActorService.Interfaces.csprojAssemblyReference.cache
 D:\Matchmaking\ActorService.Interfaces\obj\Debug\netcoreapp3.0\win7-x64\ActorService.Interfaces.AssemblyInfoInputs.cache
 D:\Matchmaking\ActorService.Interfaces\obj\Debug\netcoreapp3.0\win7-x64\ActorService.Interfaces.AssemblyInfo.cs
 D:\Matchmaking\ActorService.Interfaces\obj\Debug\netcoreapp3.0\win7-x64\ActorService.Interfaces.dll
 D:\Matchmaking\ActorService.Interfaces\obj\Debug\netcoreapp3.0\win7-x64\ActorService.Interfaces.pdb
-D:\Matchmaking\ActorService.Interfaces\obj\Debug\netcoreapp3.0\win7-x64\ActorService.Interfaces.csprojAssemblyReference.cache

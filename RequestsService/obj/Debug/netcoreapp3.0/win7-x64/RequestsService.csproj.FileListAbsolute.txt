@@ -64,6 +64,7 @@ D:\Matchmaking\RequestsService\bin\Debug\netcoreapp3.0\win7-x64\System.Compositi
 D:\Matchmaking\RequestsService\bin\Debug\netcoreapp3.0\win7-x64\System.Composition.Runtime.dll
 D:\Matchmaking\RequestsService\bin\Debug\netcoreapp3.0\win7-x64\System.Composition.TypedParts.dll
 D:\Matchmaking\RequestsService\bin\Debug\netcoreapp3.0\win7-x64\System.Configuration.ConfigurationManager.dll
+D:\Matchmaking\RequestsService\bin\Debug\netcoreapp3.0\win7-x64\System.Net.WebSockets.WebSocketProtocol.dll
 D:\Matchmaking\RequestsService\bin\Debug\netcoreapp3.0\win7-x64\System.Runtime.Caching.dll
 D:\Matchmaking\RequestsService\bin\Debug\netcoreapp3.0\win7-x64\System.Security.Cryptography.ProtectedData.dll
 D:\Matchmaking\RequestsService\bin\Debug\netcoreapp3.0\win7-x64\Validation.dll
@@ -484,4 +485,3 @@ D:\Matchmaking\RequestsService\obj\Debug\netcoreapp3.0\win7-x64\RequestsService.
 D:\Matchmaking\RequestsService\obj\Debug\netcoreapp3.0\win7-x64\RequestsService.csproj.CopyComplete
 D:\Matchmaking\RequestsService\obj\Debug\netcoreapp3.0\win7-x64\RequestsService.dll
 D:\Matchmaking\RequestsService\obj\Debug\netcoreapp3.0\win7-x64\RequestsService.pdb
-D:\Matchmaking\RequestsService\bin\Debug\netcoreapp3.0\win7-x64\System.Net.WebSockets.WebSocketProtocol.dll

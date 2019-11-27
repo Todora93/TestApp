@@ -53,7 +53,7 @@ namespace MyActorService
 
         public async Task SimulateMatch(List<UserRequest> players)
         {
-            _updateTimer = RegisterTimer(Update, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+            //_updateTimer = RegisterTimer(Update, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
 
             bool added = await this.StateManager.TryAddStateAsync<GameState>(GameStateName, new GameState(players));
 
@@ -139,6 +139,27 @@ namespace MyActorService
 
                 UnregisterTimer(_updateTimer);
             }
+        }
+
+        public async Task<UserRequest> GetOpponent(UserRequest user)
+        {
+            var gameState = await this.StateManager.GetStateAsync<GameState>(GameStateName);
+
+            var opponent = gameState.GetOpponentPlayerState(user);
+
+            return opponent.User;
+        }
+
+        public async Task<GameState> FighterDead(UserRequest user)
+        {
+            var gameState = await this.StateManager.GetStateAsync<GameState>(GameStateName);
+
+            var ev = GetEvent<ISimulationEvents>();
+            ev.MatchFinished(this.Id, gameState);
+
+            await this.StateManager.TryRemoveStateAsync(GameStateName);
+
+            return gameState;
         }
     }
 }

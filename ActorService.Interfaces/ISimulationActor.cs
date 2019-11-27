@@ -14,5 +14,9 @@ namespace MyActorService.Interfaces
         public Task SimulateMatch(List<UserRequest> players);
 
         public Task ApplyInput(UserRequest user, UserInput input);
+
+        public Task<UserRequest> GetOpponent(UserRequest user);
+
+        public Task<GameState> FighterDead(UserRequest user);
     }
 }

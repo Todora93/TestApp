@@ -18,11 +18,14 @@ namespace MyActorService.Interfaces
         [DataMember]
         public int Input { get; set; }
 
+        public bool[] PressedKeys { get; set; }
+
         public UserInput() { }
 
-        public UserInput(int input)
+        public UserInput(bool[] pressedKeys)
         {
-            Input = input;
+            //Input = input;
+            PressedKeys = pressedKeys;
         }
 
         public override string ToString()

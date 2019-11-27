@@ -184,30 +184,30 @@ namespace RequestsService
             }
         }
 
-        //protected override async Task RunAsync(CancellationToken cancellationToken)
-        //{
-        //    try
-        //    {
-        //        var queue = await this.StateManager.GetOrAddAsync<IReliableConcurrentQueue<UserRequest>>(UserRequestsQueueName);
-        //        //var map = await this.StateManager.GetOrAddAsync<IReliableDictionary<UserRequest, ActorId>>(UserToActorMapName);
-        //        var usedActors = await this.StateManager.GetOrAddAsync<IReliableDictionary<ActorId, List<UserRequest>>>(InUseActorsMapName);
+        protected override async Task RunAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                var queue = await this.StateManager.GetOrAddAsync<IReliableConcurrentQueue<UserRequest>>(UserRequestsQueueName);
+                //var map = await this.StateManager.GetOrAddAsync<IReliableDictionary<UserRequest, ActorId>>(UserToActorMapName);
+                var usedActors = await this.StateManager.GetOrAddAsync<IReliableDictionary<ActorId, List<UserRequest>>>(InUseActorsMapName);
 
-        //        while (!cancellationToken.IsCancellationRequested)
-        //        {
-        //            bool ret;
-        //            do
-        //            {
-        //                ret = await MatchmakeOneGame(cancellationToken, queue, usedActors);
-        //            } while (ret);
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    bool ret;
+                    do
+                    {
+                        ret = await MatchmakeOneGame(cancellationToken, queue, usedActors);
+                    } while (ret);
 
-        //            await Task.Delay(MatchmakeInterval, cancellationToken);
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        ServiceEventSource.Current.Message(string.Format("Exception {0}", ex));
-        //    }
-        //}
+                    await Task.Delay(MatchmakeInterval, cancellationToken);
+                }
+            }
+            catch (Exception ex)
+            {
+                ServiceEventSource.Current.Message(string.Format("Exception {0}", ex));
+            }
+        }
 
         private async Task<bool> MatchmakeOneGame(CancellationToken cancellationToken, IReliableConcurrentQueue<UserRequest> queue, IReliableDictionary<ActorId, List<UserRequest>> usedActors)
         {

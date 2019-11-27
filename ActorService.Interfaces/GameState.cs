@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.NetworkInformation;
 using System.Runtime.Serialization;
 using System.Text;
 
@@ -25,6 +26,21 @@ namespace MyActorService.Interfaces
         public PlayerState GetPlayerState(UserRequest user)
         {
             return State.Exists(u => u.User.Equals(user)) ? State.Find(u => u.User.Equals(user)) : null;
+        }
+
+        public PlayerState GetOpponentPlayerState(UserRequest user)
+        {
+            return State.Find(u => !u.User.Equals(user));
+        }
+
+        public List<UserRequest> GetUsers()
+        {
+            var users = new List<UserRequest>();
+            foreach(var state in State)
+            {
+                users.Add(state.User);
+            }
+            return users;
         }
 
         public GameState(List<UserRequest> users)

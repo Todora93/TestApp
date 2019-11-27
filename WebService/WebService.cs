@@ -8,7 +8,6 @@ namespace WebService
     using Microsoft.ServiceFabric.Services.Communication.AspNetCore;
     using Microsoft.ServiceFabric.Services.Communication.Runtime;
     using Microsoft.ServiceFabric.Services.Remoting.Runtime;
-    using Microsoft.ServiceFabric.Services.Runtime;
     using System.Net.Http;
     using MyActorService.Interfaces;
     using Microsoft.AspNetCore.SignalR;
@@ -20,7 +19,6 @@ namespace WebService
     using System.Fabric.Query;
     using Microsoft.ServiceFabric.Services.Client;
     using Microsoft.ServiceFabric.Services.Remoting.Client;
-    using Microsoft.AspNetCore.Components.Forms;
 
     /// <summary>
     /// The FabricRuntime creates an instance of this class for each service type instance. 
@@ -30,21 +28,25 @@ namespace WebService
         public WebService(StatelessServiceContext context)
             : base(context) { }
 
-        #region Communication with simulation
+        #region Communication
+
+        #region Actor -> Client
 
         public async Task StartGame(ActorId actorId, List<UserRequest> users)
         {
-            var connectionIds = GetConnectionIds(users);
             var mLong = actorId.GetLongId();
-            var mPartition = actorId.GetPartitionKey();
 
-            await Startup.hubContext.Clients.Clients(connectionIds).SendAsync("GameStarted", mLong.ToString(), mPartition.ToString());
+            var connectionIds = GetConnectionIds(users[0]);
+            await Startup.hubContext.Clients.Clients(connectionIds).SendAsync("StartGame", mLong.ToString(), 0);
+
+            connectionIds = GetConnectionIds(users[1]);
+            await Startup.hubContext.Clients.Clients(connectionIds).SendAsync("StartGame", mLong.ToString(), 1);
         }
 
         public async Task GameStateChanged(GameState gameState)
         {
             var connectionIds = GetConnectionIds(gameState);
-            await Startup.hubContext.Clients.Clients(connectionIds).SendAsync("ReceiveGameState", $"[STATE]: {gameState.ToString()}");
+            await Startup.hubContext.Clients.Clients(connectionIds).SendAsync("state", gameState.ToString());
 
             //await Startup.hubContext.Clients.All.SendAsync("ReceiveGameState",$"[STATE]: {gameState.ToString()}");
         }
@@ -52,11 +54,16 @@ namespace WebService
         public async Task MatchFinished(GameState finalState)
         {
             var connectionIds = GetConnectionIds(finalState);
-            await Startup.hubContext.Clients.Clients(connectionIds).SendAsync("GameFinished", $"[MATCH ENDED]: {finalState.ToString()}");
+            await Startup.hubContext.Clients.Clients(connectionIds).SendAsync("EndGame", finalState.ToString());
         }
+
+        #endregion
+
+        #region Client -> Actor
 
         public async Task SendInput(UserRequest user, ActorId actorId, UserInput input)
         {
+            // todo: refactor
             string actorServiceUri = $"{this.Context.CodePackageActivationContext.ApplicationName}/SimulationActorService";
             ISimulationActor simulationActor = ActorProxy.Create<ISimulationActor>(actorId, new Uri(actorServiceUri));
 
@@ -76,7 +83,27 @@ namespace WebService
             await simulationActor.ApplyInput(user, input);
         }
 
+        public async Task<UserRequest> GetOpponent(UserRequest user, ActorId actorId)
+        {
+            string actorServiceUri = $"{this.Context.CodePackageActivationContext.ApplicationName}/SimulationActorService";
+            ISimulationActor simulationActor = ActorProxy.Create<ISimulationActor>(actorId, new Uri(actorServiceUri));
+
+            return await simulationActor.GetOpponent(user);
+        }
+
+        public async Task<GameState> FighterDead(UserRequest user, ActorId actorId)
+        {
+            string actorServiceUri = $"{this.Context.CodePackageActivationContext.ApplicationName}/SimulationActorService";
+            ISimulationActor simulationActor = ActorProxy.Create<ISimulationActor>(actorId, new Uri(actorServiceUri));
+
+            return await simulationActor.FighterDead(user);
+        }
+
         #endregion
+
+        #endregion
+
+        #region Overriden
 
         /// <summary>
         /// Optional override to create listeners (like tcp, http) for this service instance.
@@ -110,6 +137,10 @@ namespace WebService
             return listeners.Concat(this.CreateServiceRemotingInstanceListeners());
         }
 
+        #endregion
+
+        #region Helpers
+
         private List<string> GetConnectionIds(GameState gameState)
         {
             var connectionIds = new List<string>();
@@ -120,19 +151,11 @@ namespace WebService
             return connectionIds;
         }
 
-        private List<string> GetConnectionIds(List<UserRequest> users)
-        {
-            var connectionIds = new List<string>();
-            foreach (var user in users)
-            {
-                connectionIds.AddRange(GetConnectionIds(user));
-            }
-            return connectionIds;
-        }
-
         private List<string> GetConnectionIds(UserRequest user)
         {
-            return Startup.userConnectionManager.GetUserConnections(user.UserId.ToString());
+            return Startup.userConnectionManager.GetUserConnections(user.UserName);
         }
+
+        #endregion
     }
 }

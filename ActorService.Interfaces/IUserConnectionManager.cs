@@ -6,8 +6,8 @@ namespace MyActorService.Interfaces
 {
     public interface IUserConnectionManager
     {
-        void KeepUserConnection(string userId, string connectionId);
+        void KeepUserConnection(string userName, string connectionId);
         void RemoveUserConnection(string connectionId);
-        List<string> GetUserConnections(string userId);
+        List<string> GetUserConnections(string userName);
     }
 }
