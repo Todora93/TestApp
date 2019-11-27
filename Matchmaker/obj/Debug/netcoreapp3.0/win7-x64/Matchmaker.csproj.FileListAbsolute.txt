@@ -1,8 +1,0 @@
-D:\Matchmaking\Matchmaker\bin\Debug\netcoreapp3.0\win7-x64\appsettings.Development.json
-D:\Matchmaking\Matchmaker\bin\Debug\netcoreapp3.0\win7-x64\appsettings.json
-D:\Matchmaking\Matchmaker\bin\Debug\netcoreapp3.0\win7-x64\Properties\launchSettings.json
-D:\Matchmaking\Matchmaker\obj\Debug\netcoreapp3.0\win7-x64\staticwebassets\Matchmaker.StaticWebAssets.Manifest.cache
-D:\Matchmaking\Matchmaker\obj\Debug\netcoreapp3.0\win7-x64\staticwebassets\Matchmaker.StaticWebAssets.xml
-D:\Matchmaking\Matchmaker\obj\Debug\netcoreapp3.0\win7-x64\Matchmaker.AssemblyInfoInputs.cache
-D:\Matchmaking\Matchmaker\obj\Debug\netcoreapp3.0\win7-x64\Matchmaker.AssemblyInfo.cs
-D:\Matchmaking\Matchmaker\obj\Debug\netcoreapp3.0\win7-x64\Matchmaker.RazorTargetAssemblyInfo.cache
