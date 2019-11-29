@@ -388,7 +388,7 @@
     mk.controllers.Network.prototype.Transports.hub_connection.init = function (userName) {
         this.connection = new signalR.HubConnectionBuilder()
             .withUrl("/myHub?userId=" + userName)
-            .withAutomaticReconnect([0, 0, 10000])
+            .withAutomaticReconnect([100, 100, 1000, 1000, 1000, 1000, 1000, 5000])
             .configureLogging(signalR.LogLevel.Information)
             .build();
 
