@@ -79,12 +79,7 @@
         <SingletonPartition />
       </StatelessService>
     </Service>
-    <!--<Service Name="SimulationActor">
-      <StatefulService ServiceTypeName="SimulationActorType" TargetReplicaSetSize="[SimulationActor_TargetReplicaSetSize]" MinReplicaSetSize="[SimulationActor_MinReplicaSetSize]">
-        <UniformInt64Partition PartitionCount="[SimulationActor_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
-      </StatefulService>
-    </Service>-->
-    <Service Name="SimulationActorService" GeneratedIdRef="2ba4cabb-b851-48b7-8c36-6b01dc32cd97|Persisted">
+    <Service Name="SimulationActorService" GeneratedIdRef="2ba4cabb-b851-48b7-8c36-6b01dc32cd97|Persisted" ServicePackageActivationMode="ExclusiveProcess">
       <StatefulService ServiceTypeName="SimulationActorServiceType" TargetReplicaSetSize="[SimulationActorService_TargetReplicaSetSize]" MinReplicaSetSize="[SimulationActorService_MinReplicaSetSize]">
         <UniformInt64Partition PartitionCount="[SimulationActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
       </StatefulService>

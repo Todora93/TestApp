@@ -11,7 +11,6 @@
     using Microsoft.ServiceFabric.Services.Remoting.Client;
     using Newtonsoft.Json;
     using MyActorService.Interfaces;
-    using System.Threading;
 
     [Route("api/[controller]")]
     public class RequestsController : Controller
@@ -120,7 +119,9 @@
                     ServicePartitionKey key = new ServicePartitionKey(((Int64RangePartitionInformation)partition.PartitionInformation).LowKey);
                     IRequestManager service = ServiceProxy.Create<IRequestManager>(new Uri(serviceUri), key);
 
-                    await service.DeleteAllRequests();
+                    //await service.DeleteAllRequests();
+
+                    await service.DeleteAll();
                 }
 
                 ServiceEventSource.Current.Message($"Deleted all user requests!");
@@ -136,67 +137,5 @@
                 return new ContentResult { StatusCode = 503, Content = $"The service was unable to process the request. Please try again. Exception: {e}" };
             }
         }
-
-        //// GET: api/values
-        //[HttpGet]
-        //public async Task<IActionResult> GetAsync()
-        //{
-        //    string serviceUri = $"{this.serviceContext.CodePackageActivationContext.ApplicationName}/{configSettings.RequestsServiceName}";
-
-        //    ServicePartitionList partitions = await this.fabricClient.QueryManager.GetPartitionListAsync(new Uri(serviceUri));
-
-        //    List<UserRequest> result = new List<UserRequest>();
-
-        //    foreach (Partition partition in partitions)
-        //    {
-
-        //        long partitionKey = ((Int64RangePartitionInformation)partition.PartitionInformation).LowKey;
-
-        //        string proxyUrl =
-        //            $"http://localhost:{this.configSettings.ReverseProxyPort}/{serviceUri.Replace("fabric:/", "")}/api/values?PartitionKind={partition.PartitionInformation.Kind}&PartitionKey={partitionKey}";
-
-        //        HttpResponseMessage response = await this.httpClient.GetAsync(proxyUrl);
-
-        //        if (response.StatusCode != System.Net.HttpStatusCode.OK)
-        //        {
-        //            // if one partition returns a failure, you can either fail the entire request or skip that partition.
-        //            return this.StatusCode((int)response.StatusCode);
-        //        }
-
-        //        List<UserRequest> list =
-        //            JsonConvert.DeserializeObject<List<UserRequest>>(await response.Content.ReadAsStringAsync());
-
-        //        if (list != null && list.Any())
-        //        {
-        //            result.AddRange(list);
-        //        }
-        //    }
-
-        //    return this.Json(result);
-
-        //}
-
-        //// PUT api/values
-        //[HttpPut]
-        //public async Task<IActionResult> PutAsync([FromBody] long value)
-        //{
-        //    string serviceUri = $"{this.serviceContext.CodePackageActivationContext.ApplicationName.Replace("fabric:/", "")}/{this.configSettings.RequestsServiceName}";
-
-        //    string proxyUrl =
-        //        $"http://localhost:{this.configSettings.ReverseProxyPort}/{serviceUri}/api/values/0?PartitionKind=Int64Range&PartitionKey=0";
-
-        //    string payload = $"{{ 'value' : '{value}' }}";
-        //    StringContent putContent = new StringContent(payload, Encoding.UTF8, "application/json");
-        //    putContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-
-        //    HttpResponseMessage response = await this.httpClient.PutAsync(proxyUrl, putContent);
-
-        //    return new ContentResult()
-        //    {
-        //        StatusCode = (int)response.StatusCode,
-        //        Content = await response.Content.ReadAsStringAsync()
-        //    };
-        //}
-
     }
 }

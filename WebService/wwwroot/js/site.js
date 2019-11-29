@@ -37,7 +37,7 @@ function addRequestValue2(userName) {
     http.onreadystatechange = function () {
         if (http.readyState === 4) {
             end = new Date().getTime();
-            updateFooter(http, (end - start));
+            //updateFooter(http, (end - start));
         }
     };
     start = new Date().getTime();

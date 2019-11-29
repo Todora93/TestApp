@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net.NetworkInformation;
+﻿using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text;
 
@@ -23,6 +21,16 @@ namespace MyActorService.Interfaces
         [DataMember]
         public long GameTimeSec { get; set; }
 
+        public GameState(List<UserRequest> users)
+        {
+            State = new List<PlayerState>();
+            foreach (UserRequest user in users)
+            {
+                State.Add(new PlayerState(user));
+            }
+            GameTimeSec = 0;
+        }
+
         public PlayerState GetPlayerState(UserRequest user)
         {
             return State.Exists(u => u.User.Equals(user)) ? State.Find(u => u.User.Equals(user)) : null;
@@ -31,6 +39,11 @@ namespace MyActorService.Interfaces
         public PlayerState GetOpponentPlayerState(UserRequest user)
         {
             return State.Find(u => !u.User.Equals(user));
+        }
+
+        public int GetPlayerIndex(UserRequest user)
+        {
+            return State.FindIndex(u => u.User.Equals(user));
         }
 
         public List<UserRequest> GetUsers()
@@ -43,14 +56,10 @@ namespace MyActorService.Interfaces
             return users;
         }
 
-        public GameState(List<UserRequest> users)
+        public void UpdatePlayerState(UserRequest user, string move, int life, int positionX, int positionY)
         {
-            State = new List<PlayerState>();
-            foreach(UserRequest user in users)
-            {
-                State.Add(new PlayerState(user, 0));
-            }
-            GameTimeSec = 0;
+            var playerState = GetPlayerState(user);
+            playerState.UpdateState(move, life, positionX, positionY);
         }
 
         public override string ToString()

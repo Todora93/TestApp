@@ -2,6 +2,8 @@ namespace MyActorService
 {
     using System;
     using System.Collections.Generic;
+    using System.ComponentModel;
+    using System.Runtime.CompilerServices;
     using System.Threading.Tasks;
     using global::MyActorService.Interfaces;
     using Microsoft.ServiceFabric.Actors;
@@ -83,31 +85,31 @@ namespace MyActorService
                 return;
             }
 
-            ApplyInput(playerState, input); 
+            //ApplyInput(playerState, input); 
             
             await this.StateManager.SetStateAsync<GameState>(GameStateName, gameState.Value);
         }
 
-        private void ApplyInput(PlayerState state, UserInput input)
-        {
-            switch (input.Input)
-            {
-                case 0:
-                    state.Value += 100;
-                    break;
-                case 1:
-                    state.Value -= 100;
-                    break;
-                case 2:
-                    state.Value *= 100;
-                    break;
-                case 3:
-                    state.Value /= 100;
-                    break;
-                default:
-                    break;
-            }
-        }
+        //private void ApplyInput(PlayerState state, UserInput input)
+        //{
+        //    switch (input.Input)
+        //    {
+        //        case 0:
+        //            state.Value += 100;
+        //            break;
+        //        case 1:
+        //            state.Value -= 100;
+        //            break;
+        //        case 2:
+        //            state.Value *= 100;
+        //            break;
+        //        case 3:
+        //            state.Value /= 100;
+        //            break;
+        //        default:
+        //            break;
+        //    }
+        //}
 
         private async Task Update(object state)
         {
@@ -150,6 +152,43 @@ namespace MyActorService
             return opponent.User;
         }
 
+        public async Task UpdateMove(UserRequest user, ActorId actorId, string move)
+        {
+            var gameState = await this.StateManager.GetStateAsync<GameState>(GameStateName);
+            var playerState = gameState.GetPlayerState(user);
+            playerState.Move = move;
+            await this.StateManager.SetStateAsync<GameState>(GameStateName, gameState);
+        }
+
+        public async Task UpdateLife(UserRequest user, ActorId actorId, int life)
+        {
+            var gameState = await this.StateManager.GetStateAsync<GameState>(GameStateName);
+            var playerState = gameState.GetPlayerState(user);
+            playerState.Life = life;
+            await this.StateManager.SetStateAsync<GameState>(GameStateName, gameState);
+        }
+
+        public async Task UpdatePosition(UserRequest user, ActorId actorId, int posX, int posY)
+        {
+            var gameState = await this.StateManager.GetStateAsync<GameState>(GameStateName);
+            var playerState = gameState.GetPlayerState(user);
+            playerState.PositionX = posX;
+            playerState.PositionY = posY;
+            await this.StateManager.SetStateAsync<GameState>(GameStateName, gameState);
+        }
+
+        //public async Task UpdatePlayerState(UserRequest user, string move, int life, int positionX, int positionY)
+        //{
+        //    var gameState = await this.StateManager.GetStateAsync<GameState>(GameStateName);
+        //    gameState.UpdatePlayerState(user, move, life, positionX, positionY);
+        //    await this.StateManager.SetStateAsync<GameState>(GameStateName, gameState);
+        //}
+
+        public async Task<GameState> GetGameState(UserRequest user)
+        {
+            return await this.StateManager.GetStateAsync<GameState>(GameStateName);
+        }
+             
         public async Task<GameState> FighterDead(UserRequest user)
         {
             var gameState = await this.StateManager.GetStateAsync<GameState>(GameStateName);

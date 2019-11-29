@@ -14,8 +14,7 @@ namespace WebService
     public class Startup
     {
         public static IServiceProvider serviceProvider;
-        public static IHubContext<MyHub> hubContext;
-        public static FabricClient fabricClient;
+        public static IHubContext<MyHub, IMyHub> hubContext;
 
         public static IUserConnectionManager userConnectionManager;
 
@@ -59,9 +58,8 @@ namespace WebService
             app.Use(async (context, next) =>
             {
                 serviceProvider = context.RequestServices;
-                hubContext = context.RequestServices.GetRequiredService<IHubContext<MyHub>>();
+                hubContext = context.RequestServices.GetRequiredService<IHubContext<MyHub, IMyHub>>();
                 userConnectionManager = context.RequestServices.GetRequiredService<IUserConnectionManager>();
-                fabricClient = context.RequestServices.GetRequiredService<FabricClient>();
 
                 await next.Invoke();
             });

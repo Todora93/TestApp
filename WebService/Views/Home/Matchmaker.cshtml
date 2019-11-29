@@ -3,7 +3,7 @@
 <head>
     <title>mk.js</title>
     <script src="~/lib/signalr/signalr.js"></script>
-    <script src="~/js/matchmaker.js?v=2"></script>
+    <script src="~/js/matchmaker.js?v=4"></script>
     <script src="~/js/test.js?v=1"></script>
     @*<script src="/socket.io/socket.io.js"></script>*@
     <link rel="stylesheet" href="~/css/styles.css" />
@@ -28,7 +28,7 @@
                         <div id="arena">
                         </div>
                         <div id="loading">
-                            <span class="loadingLabel">Loading...</span>
+                            <span class="loadingLabel">LOADING...</span>
                         </div>
                     </div>
                 </td>
@@ -64,6 +64,10 @@
                     container.style.width = life + '%';
                 }
 
+                function setName(container, name) {
+                    container.innerHTML = name;
+                }
+
                 document.onkeydown = function (e) {
                     if (e.keyCode === 32) {
                         window.location.reload();
@@ -91,8 +95,27 @@
                                 } else {
                                     setLife($('player1Life'), o.getLife());
                                 }
-                            }
+                            },
+                            gameStarted: function (player1Name, player2Name, isReconnect) {
+                                setName($('player1Name'), player1Name);
+                                setName($('player2Name'), player2Name);
 
+                                $('loading').style.visibility = 'visible';
+                                $('loading').children[0].innerHTML = isReconnect ? 'RECONNECTED TO THE GAME' : 'GAME STARTED';
+
+                                setTimeout(function () {
+                                    $('loading').style.visibility = 'hidden';
+                                    $('loading').children[0].innerHTML = 'LOADING...';
+                                }, 2000);
+                            },
+                            setLife: function (player, life) {
+                                if (player == 0) {
+                                    setLife($('player1Life'), life);
+                                }
+                                else if (player == 1) {
+                                    setLife($('player2Life'), life);
+                                }
+                            }
                         },
                         isHost: /^yes$//*i.test(prompt('Are you going to be host?'))*/,
                         userName: prompt('Enter user name:'),

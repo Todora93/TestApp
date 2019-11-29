@@ -4,6 +4,8 @@
 
     mk.callbacks = {
         ATTACK: 'attack',
+        GAME_STARTED: 'gameStarted',
+        SET_LIFE: 'setLife',
         GAME_END: 'game-end'
     };
 
@@ -367,7 +369,7 @@
     };
 
     mk.controllers.Network.prototype.Messages = {
-        INPUT_MOVE : 'SendMove',
+        INPUT_MOVE : 'MoveUpdate',
         INPUT: 'SendInput',
         STATE_MOVE: 'ReceiveMove',
         STATE: 'ReceiveState',
@@ -376,6 +378,7 @@
         START_GAME: 'StartGame',
         FIGHTER_DEAD: 'FighterDead',
         END_GAME: 'EndGame',
+        GAME_RECONNECT: 'ReconnectToGame',
     };
 
     mk.controllers.Network.prototype.Transports = {
@@ -394,12 +397,21 @@
             console.log("started");
             self.connection.invoke('GetConnectionId').then(function (connectionId) {
                 console.log('connectionId is :' + connectionId);
+                self.connection.invoke('AddRequest', userName);
             })
 
-            addRequestValue2(userName);
-
+            //addRequestValue2(userName);
         }).catch(function (err) {
             return console.error(err.toString());
+        });
+
+        this.connection.onreconnected((connectionId) => {
+            console.log("reconnected " + connectionId);
+            self.connection.invoke('GetConnectionId').then(function (connectionId) {
+                console.log('connectionId is :' + connectionId);
+                self.connection.invoke('AddRequest', userName);
+            })
+
         });
     };
 
@@ -466,12 +478,66 @@
             m = this.Messages;
 
         this._transport.init(this._userName);
-        this._transport.connection.on(m.START_GAME, (actorId, isHost) => {
-            this._actorId = actorId;
-            this._player = isHost;
-            this._addHandlers();
-            this._addConnectionHandlers();
+        this._transport.connection.on(m.START_GAME, (actorId, isHost, player1Name, player2Name) => {
+            self.onGameStarted(self, actorId, isHost, player1Name, player2Name);
         });
+
+        this._transport.connection.on(m.GAME_RECONNECT, (actorId, isHost, gameState) => {
+            self.onGameReconnected(self, actorId, isHost, gameState);
+        });
+    };
+
+    mk.controllers.Network.prototype.onGameReconnected = function (self, actorId, isHost, gameState)
+    {
+        self._actorId = actorId;
+        self._player = isHost;
+        self._addHandlers();
+        self._addConnectionHandlers();
+
+        var f = self.fighters[self._player],
+            opponent = self.fighters[+!self._player];
+
+        var fState = gameState.state[self._player];
+        var opponentState = gameState.state[+!self._player];
+
+        // set move
+        self._moveFighter(f, fState.move);
+        self._moveFighter(opponent, opponentState.move);
+
+        // set position
+        f.setX(fState.positionX);
+        f.setY(fState.positionY);
+
+        opponent.setX(opponentState.positionX);
+        opponent.setY(opponentState.positionY);
+
+        // set life
+        f.setLife(fState.life);
+        opponent.setLife(opponentState.life);
+
+        callback = self._callbacks[mk.callbacks.SET_LIFE];
+        if (typeof callback === 'function') {
+            callback.call(null, self._player, fState.life);
+            callback.call(null, +!self._player, opponentState.life);
+        }
+
+        callback = self._callbacks[mk.callbacks.GAME_STARTED];
+        if (typeof callback === 'function') {
+            callback.call(null, gameState.state[0].user.userName, gameState.state[1].user.userName, true);
+        }
+    }
+
+    mk.controllers.Network.prototype.onGameStarted = function (self, actorId, isHost, player1Name, player2Name) {
+
+        self._actorId = actorId;
+        self._player = isHost;
+        self._addHandlers();
+        self._addConnectionHandlers();
+
+        callback = self._callbacks[mk.callbacks.GAME_STARTED];
+        if (typeof callback === 'function') {
+            callback.call(null, player1Name, player2Name, false);
+        }
     };
 
     mk.start = function (options) {

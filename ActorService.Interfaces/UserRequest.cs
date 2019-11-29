@@ -5,7 +5,7 @@
     using System.Runtime.Serialization;
 
     [DataContract(Name = "UserRequest", Namespace = "SimulationActor.Interfaces")]
-    public sealed class UserRequest : IExtensibleDataObject, IEquatable<UserRequest>, IComparable<UserRequest>, IComparable
+    public class UserRequest : IExtensibleDataObject, IEquatable<UserRequest>, IComparable<UserRequest>, IComparable
     {
         private ExtensionDataObject extensibleDataObject;
 
@@ -16,10 +16,10 @@
         }
 
         [DataMember]
-        public long UserId { get; set; }
+        public long UserId { get; private set; }
 
         [DataMember]
-        public string UserName { get; set; }
+        public string UserName { get; private set; }
 
         public UserRequest() { }
 
@@ -28,24 +28,29 @@
             UserName = userName;
         }
 
-        public int CompareTo([AllowNull] UserRequest other)
+        public override string ToString()
         {
-            return UserName.CompareTo(other.UserName);
-        }
-
-        public int CompareTo(object obj)
-        {
-            return UserName.CompareTo(((UserRequest)obj).UserName);
+            return $"User: {UserName}";
         }
 
         public bool Equals([AllowNull] UserRequest other)
         {
-            return UserName.Equals(other.UserName);
+            int compare = string.Compare(UserName, other?.UserName);
+            return compare == 0;
         }
 
-        public override string ToString()
+        public int CompareTo([AllowNull] UserRequest other)
         {
-            return $"User: {UserName}";
+            return string.Compare(UserName, other?.UserName);
+        }
+
+        public int CompareTo(object obj)
+        {
+            return string.Compare(UserName, ((UserRequest)obj)?.UserName);
+        }
+        public override int GetHashCode()
+        {
+            return UserName.GetHashCode();
         }
     }
 }

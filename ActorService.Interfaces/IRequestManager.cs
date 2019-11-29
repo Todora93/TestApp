@@ -3,18 +3,21 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.ServiceFabric.Actors;
+    using Microsoft.ServiceFabric.Data;
     using Microsoft.ServiceFabric.Services.Remoting;
 
     public interface IRequestManager : IService
     {
         // todo delete
-        Task<bool> GetActiveActorId(ActorId actorId);
+        //Task<bool> GetActiveActorId(ActorId actorId);
 
-        Task AddRequestAsync(UserRequest guid);
+        Task<ExistingMatch> AddRequestAsync(UserRequest user);
 
         Task<string> GetAllRequests();
 
         Task DeleteAllRequests();
+
+        Task DeleteAll();
 
         Task Matchmake(CancellationToken cancellationToken);
     }
