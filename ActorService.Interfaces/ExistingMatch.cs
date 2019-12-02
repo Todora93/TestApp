@@ -1,5 +1,4 @@
-﻿using Microsoft.ServiceFabric.Actors;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 
 namespace MyActorService.Interfaces
 {
@@ -10,12 +9,12 @@ namespace MyActorService.Interfaces
         public bool HasMatch {get; private set;}
 
         [DataMember]
-        public ActorId ActorId { get; private set; }
+        public ActorInfo ActorInfo { get; private set; }
 
-        public ExistingMatch(bool hasMatch, ActorId id)
+        public ExistingMatch(bool hasMatch, ActorInfo info)
         {
             HasMatch = hasMatch;
-            ActorId = id;
+            ActorInfo = info;
         }
     }
 }

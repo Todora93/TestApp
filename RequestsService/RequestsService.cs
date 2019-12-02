@@ -16,13 +16,12 @@ namespace RequestsService
     using System.Text;
     using Microsoft.ServiceFabric.Actors.Client;
     using Microsoft.ServiceFabric.Services.Remoting.Client;
-    using System.Fabric.Query;
-    using Microsoft.ServiceFabric.Services.Client;
     using System.Runtime.CompilerServices;
     using Microsoft.ServiceFabric.Actors.Query;
     using System.Linq;
     using System.Fabric.Description;
     using System.Diagnostics.CodeAnalysis;
+    using Microsoft.CodeAnalysis.CSharp.Syntax;
 
     /// <summary>
     /// The FabricRuntime creates an instance of this class for each service type instance. 
@@ -43,8 +42,7 @@ namespace RequestsService
 
         // todo: put in config
         private const int MatchSize = 2;
-        private const float ActorCountThreshold = 0.1f;
-        private const bool ScaleActors = false;
+        private const int ActiveActorsThreshold = 100;
 
         public RequestsService(StatefulServiceContext context)
             : base(context)
@@ -53,45 +51,28 @@ namespace RequestsService
             this.fabricClient = new FabricClient();
         }
 
+        public Task StartGeneratingRequests(int loopCount)
+        {
+            actorLoopSpan = TimeSpan.FromMilliseconds(100);
+            actorLoopingCount = loopCount;
+            return Task.CompletedTask;
+        }
+
         public async Task<ExistingMatch> AddRequestAsync(UserRequest request)
         {
             try
             {
-                var matchmakedUsers = await this.StateManager.GetOrAddAsync<IReliableDictionary<UserRequest, ActorId>>(UserToActorMapName);
+                var matchmakedUsers = await this.StateManager.GetOrAddAsync<IReliableDictionary<UserRequest, ActorInfo>>(UserToActorMapName);
                 var requestsQueue = await this.StateManager.GetOrAddAsync<IReliableConcurrentQueue<UserRequest>>(UserRequestsQueueName);
 
                 bool hasActor = false;
-                ActorId actorId = null;
+                ActorInfo actorId = null;
 
                 ExistingMatch existingMatch = null;
 
                 using (ITransaction tx = this.StateManager.CreateTransaction())
                 {
-                    //var enumerable = await matchmakedUsers.CreateEnumerableAsync(tx, EnumerationMode.Ordered);
-                    //var asyncEnumerator = enumerable.GetAsyncEnumerator();
-                    //var cancellationToken = new CancellationToken();
-
-                    //while (await asyncEnumerator.MoveNextAsync(cancellationToken))
-                    //{
-                    //    if (asyncEnumerator.Current.Key.Equals(request))
-                    //    {
-                    //        hasActor = true;
-                    //        actorId = asyncEnumerator.Current.Value;
-                    //        break;
-                    //    }
-                    //}
-
-                    //if (hasActor)
-                    //{
-                    //    ServiceEventSource.Current.Message($"User {request } has active match on actor {actorId}!");
-                    //}
-                    //else
-                    //{
-                    //    await requestsQueue.EnqueueAsync(tx, request);
-                    //    ServiceEventSource.Current.Message($"User request {request } added to the queue!");
-                    //}
-
-                    ConditionalValue<ActorId> assignedActor;
+                    ConditionalValue<ActorInfo> assignedActor;
                     bool hasMatchInProgress = await matchmakedUsers.ContainsKeyAsync(tx, request);
                     if (hasMatchInProgress)
                     {
@@ -133,13 +114,13 @@ namespace RequestsService
             }
         }
 
-        private async Task<bool> MatchmakeOneGame(CancellationToken cancellationToken, IReliableConcurrentQueue<UserRequest> queue, IReliableDictionary<ActorId, PlayersInMatch> usedActors, IReliableDictionary<UserRequest, ActorId> matchmakedUsers)
+        private async Task<bool> MatchmakeOneGame(CancellationToken cancellationToken, IReliableConcurrentQueue<UserRequest> queue, IReliableDictionary<ActorInfo, PlayersInMatch> usedActors, IReliableDictionary<UserRequest, ActorInfo> matchmakedUsers)
         {
             try
             {
                 ConditionalValue<UserRequest> ret;
                 PlayersInMatch players = new PlayersInMatch();
-                ActorId actorId;
+                ActorInfo actorId;
 
                 using (var tx = this.StateManager.CreateTransaction())
                 {
@@ -148,7 +129,7 @@ namespace RequestsService
                         ret = await queue.TryDequeueAsync(tx, cancellationToken);
                         if (ret.HasValue)
                         {
-                            players = players.AddPlayer(new UserRequest(ret.Value.UserName));
+                            players = players.AddPlayer(new UserRequest(ret.Value));
                         }
                     }
                     while (!cancellationToken.IsCancellationRequested && ret.HasValue && players.Count < MatchSize);
@@ -161,13 +142,15 @@ namespace RequestsService
                     }
 
                     // found enough players - assign them actor
-                    bool usedActor = false;
-                    do
-                    {
-                        actorId = ActorId.CreateRandom();
-                        usedActor = await usedActors.ContainsKeyAsync(tx, actorId);
-                    }
-                    while (!cancellationToken.IsCancellationRequested && usedActor);
+                    //bool usedActor = false;
+                    //do
+                    //{
+                    //    actorId = ActorId.CreateRandom();
+                    //    usedActor = await usedActors.ContainsKeyAsync(tx, actorId);
+                    //}
+                    //while (!cancellationToken.IsCancellationRequested && usedActor);
+
+                    actorId = await GetSimulationActorId(tx, cancellationToken);
 
                     if (cancellationToken.IsCancellationRequested)
                     {
@@ -184,27 +167,47 @@ namespace RequestsService
                         return false;
                     }
 
-                    foreach(var player in players.Players)
+                    var playersToAdd = players.GetList();
+                    List<UserRequest> addedPlayers = new List<UserRequest>();
+
+                    foreach(var player in playersToAdd)
                     {
                         added = await matchmakedUsers.TryAddAsync(tx, player, actorId);
-                        if (!added)
+                        if (added)
                         {
-                            ServiceEventSource.Current.ServiceMessage(this.Context, $"Tried to add already existing request {player}");
-                            tx.Abort();
-                            return false;
+                            addedPlayers.Add(player);
                         }
+                    }
+
+                    if (addedPlayers.Count != playersToAdd.Count)
+                    {
+                        foreach(var player in addedPlayers)
+                        {
+                            await matchmakedUsers.TryRemoveAsync(tx, player);
+                            await queue.EnqueueAsync(tx, player);
+                        }
+                        ServiceEventSource.Current.ServiceMessage(this.Context, $"Some duplicated requests encountered");
                     }
 
                     await tx.CommitAsync();
                 }
 
-                string actorServiceUri = $"{this.Context.CodePackageActivationContext.ApplicationName}/SimulationActorService";
-
                 List<UserRequest> playersList = players.GetList();
 
                 // Create actor simulation
-                ISimulationActor simulationActor = ActorProxy.Create<ISimulationActor>(actorId, new Uri(actorServiceUri));
-                await simulationActor.SimulateMatch(playersList);
+                int index = actorId.ActorIndex;
+
+                string suffix = GetSimulationActorNameSuffix(index);
+                string actorServiceUri = $"{this.context.CodePackageActivationContext.ApplicationName}/SimulationActorService{suffix}";
+                ISimulationActor simulationActor = ActorProxy.Create<ISimulationActor>(actorId.ActorId, new Uri(actorServiceUri));
+
+                bool simulated = await simulationActor.SimulateMatch(playersList, actorId);
+                if (!simulated)
+                {
+                    ServiceEventSource.Current.Message($"Something went wrong with simulation");
+                    return false;
+                }
+
                 await simulationActor.SubscribeAsync<ISimulationEvents>(this);
 
                 // Notify clients
@@ -230,44 +233,29 @@ namespace RequestsService
             }
         }
 
+        private async Task InitializeMap()
+        {
+            var map = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, ActiveActors>>(ActorsCountName);
+            using (var tx = this.StateManager.CreateTransaction())
+            {
+                await map.SetAsync(tx, ActorsCount, new ActiveActors(new List<int>() { 0 }));
+                await tx.CommitAsync();
+            }
+
+            poolInfo.currentPlacementActor = PopulateActorInfo(0, poolInfo.pool);
+        }
 
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
-            try
+            await InitializeMap();
+
+            while (!cancellationToken.IsCancellationRequested)
             {
-                var queue = await this.StateManager.GetOrAddAsync<IReliableConcurrentQueue<UserRequest>>(UserRequestsQueueName);
-                var matchmakedUsers = await this.StateManager.GetOrAddAsync<IReliableDictionary<UserRequest, ActorId>>(UserToActorMapName);
-                var usedActors = await this.StateManager.GetOrAddAsync<IReliableDictionary<ActorId, PlayersInMatch>>(InUseActorsMapName);
-
-                while (!cancellationToken.IsCancellationRequested)
+                try
                 {
-                    //StringBuilder s1 = new StringBuilder();
-                    
-                    //using (var tx = this.StateManager.CreateTransaction())
-                    //{
-                    //    var enumerable = await matchmakedUsers.CreateEnumerableAsync(tx, EnumerationMode.Ordered);
-                    //    var asyncEnumerator = enumerable.GetAsyncEnumerator();
-
-                    //    s1.Append("matchmaked ");
-                    //    while (await asyncEnumerator.MoveNextAsync(cancellationToken))
-                    //    {
-                    //        // Process asyncEnumerator.Current.Key and asyncEnumerator.Current.Value as you wish
-                    //        s1.Append($"key: {asyncEnumerator.Current.Key}, value: {asyncEnumerator.Current.Value}");
-                    //    }
-
-                    //    var enumerable2 = await usedActors.CreateEnumerableAsync(tx, EnumerationMode.Ordered);
-                    //    var asyncEnumerator2 = enumerable2.GetAsyncEnumerator();
-
-                    //    s1.Append("usedActors");
-                    //    while (await asyncEnumerator2.MoveNextAsync(cancellationToken))
-                    //    {
-                    //        // Process asyncEnumerator.Current.Key and asyncEnumerator.Current.Value as you wish
-                    //        s1.Append($"key: {asyncEnumerator2.Current.Key}, value: {asyncEnumerator2.Current.Value}");
-                    //    }
-
-                    //}
-                    //string s = s1.ToString();
-
+                    var queue = await this.StateManager.GetOrAddAsync<IReliableConcurrentQueue<UserRequest>>(UserRequestsQueueName);
+                    var matchmakedUsers = await this.StateManager.GetOrAddAsync<IReliableDictionary<UserRequest, ActorInfo>>(UserToActorMapName);
+                    var usedActors = await this.StateManager.GetOrAddAsync<IReliableDictionary<ActorInfo, PlayersInMatch>>(InUseActorsMapName);
 
                     bool ret;
                     do
@@ -276,26 +264,37 @@ namespace RequestsService
                     } while (ret);
 
 
-                    if (ScaleActors && lastActorCheck.Add(actorCheckSpan) <= DateTime.Now)
+                    if (lastActorCheck.Add(actorLoopSpan) <= DateTime.Now)
                     {
-                        await ManageActors(cancellationToken);
+                        if(actorLoopingCount > 0)
+                        {
+                            for (int i = 0; i < 200; i++)
+                            {
+                                await AddRequestAsync(new UserRequest(Guid.NewGuid().ToString(), true));
+                            }
+
+                            actorLoopingCount--;
+                        }
+
+                        await DeleteUnusuedActors(cancellationToken);
+
                         lastActorCheck = DateTime.Now;
                     }
 
                     await Task.Delay(MatchmakeInterval, cancellationToken);
                 }
-            }
-            catch (Exception ex)
-            {
-                ServiceEventSource.Current.Message(string.Format("Exception {0}", ex));
+                catch (Exception ex)
+                {
+                    ServiceEventSource.Current.Message(string.Format("Exception {0}", ex));
+                }
             }
         }
 
         #region Callbacks
 
-        public async void StateUpdated(ActorId actorId, GameState gameState)
+        public async void StateUpdated(ActorInfo actorInfo, GameState gameState)
         {
-            ServiceEventSource.Current.ServiceMessage(this.Context, $"Match state updated, ActorId: {actorId}, GameState: {gameState.ToString()}");
+            ServiceEventSource.Current.ServiceMessage(this.Context, $"Match state updated, ActorId: {actorInfo}, GameState: {gameState.ToString()}");
 
             string serviceUri = $"{this.context.CodePackageActivationContext.ApplicationName}/WebService";
 
@@ -304,12 +303,12 @@ namespace RequestsService
             await service.GameStateChanged(gameState);
         }
 
-        public async void MatchFinished(ActorId actorId, GameState finalGameState)
+        public async void MatchFinished(ActorInfo actorId, GameState finalGameState)
         {
             try
             {
-                var matchmakedUsers = await this.StateManager.GetOrAddAsync<IReliableDictionary<UserRequest, ActorId>>(UserToActorMapName);
-                var userActors = await this.StateManager.GetOrAddAsync<IReliableDictionary<ActorId, PlayersInMatch>>(InUseActorsMapName);
+                var matchmakedUsers = await this.StateManager.GetOrAddAsync<IReliableDictionary<UserRequest, ActorInfo>>(UserToActorMapName);
+                var userActors = await this.StateManager.GetOrAddAsync<IReliableDictionary<ActorInfo, PlayersInMatch>>(InUseActorsMapName);
 
                 using (var tx = this.StateManager.CreateTransaction())
                 {
@@ -322,7 +321,7 @@ namespace RequestsService
                     {
                         foreach(var player in playersInMatch.Value.Players)
                         {
-                            ConditionalValue<ActorId> remove = await matchmakedUsers.TryRemoveAsync(tx, player);
+                            ConditionalValue<ActorInfo> remove = await matchmakedUsers.TryRemoveAsync(tx, player);
                             if (!remove.HasValue)
                             {
                                 ServiceEventSource.Current.ServiceMessage(this.Context, $"Somethings went wrong while removing request, it's not present in dictionary");
@@ -332,6 +331,12 @@ namespace RequestsService
                     }
 
                     await tx.CommitAsync();
+                }
+
+                bool r = poolInfo.pool[actorId.ActorIndex].ActiveActors.Remove(actorId.ActorId);
+                if (!r)
+                {
+                    ServiceEventSource.Current.ServiceMessage(this.Context, $"Something went wrong, cannot remove actor with id {actorId}");
                 }
 
                 ServiceEventSource.Current.ServiceMessage(this.Context, $"Match finished, ActorId: {actorId}");
@@ -364,89 +369,31 @@ namespace RequestsService
         #region
 
         private DateTime lastActorCheck = DateTime.Now;
-        private TimeSpan actorCheckSpan = TimeSpan.FromMilliseconds(100);
+        private TimeSpan actorLoopSpan = TimeSpan.FromMilliseconds(100);
+        private int actorLoopingCount = 0;
 
-        private ActorServicePoolInfo poolInfo;
-
-        public class ActorServicePoolInfo
+        public class ActorsCountInfo
         {
-            public Dictionary<int, List<ActorsCountInfo>> pool;
+            public ActorLocationInfo Location;
 
-            public ActorLocationInfo currentPlacementActor;
+            public List<ActorId> ActiveActors;
 
-            private List<ActorsCountInfo> GetCurrentLocations()
+            public int Active => ActiveActors.Count;
+
+            public bool IsAlive()
             {
-                var list = new List<ActorsCountInfo>();
-                foreach (var pair in pool)
-                {
-                    foreach (var info in pair.Value)
-                    {
-                        list.Add(info);
-                    }
-                }
-                return list;
+                return Active > 0;
             }
 
-            public ActorLocationInfo GetActorLocation(float upperThreshold)
+            public bool HasMoreSpace()
             {
-                var current = currentPlacementActor;
-                var start = current;
-
-                var infos = GetCurrentLocations();
-                int startIndex = infos.FindIndex(x => x.Location == currentPlacementActor);
-                int currentIndex = startIndex;
-
-                do
-                {
-                    var info = infos[currentIndex];
-                    if (info.Ratio <= upperThreshold)
-                    {
-                        currentPlacementActor = info.Location;
-                        break;
-                    }
-
-                    currentIndex = (currentIndex + 1) % infos.Count;
-                } while (startIndex != currentIndex);
-
-                if (startIndex == currentIndex)
-                {
-                    currentPlacementActor = null;
-                }
-
-                return currentPlacementActor;
-            }
-
-            public List<int> GetActorsToDelete()
-            {
-                var toDelete = new List<int>();
-                foreach (var pair in pool)
-                {
-                    bool delete = true;
-                    foreach (var info in pair.Value)
-                    {
-                        if (info.Active > 0)
-                        {
-                            delete = false;
-                            break;
-                        }
-                    }
-                    if (delete)
-                    {
-                        toDelete.Add(pair.Key);
-                    }
-                }
-                return toDelete;
+                return Active < ActiveActorsThreshold;
             }
         }
 
         public class ActorLocationInfo : IComparable, IComparable<ActorLocationInfo>, IEquatable<ActorLocationInfo>
         {
             public int Index;
-            public long PartitionKey;
-            public int PartitionIndex;
-            public int NumOfPartitions;
-
-            public long KeyDiff => (long)(Int64.MaxValue / NumOfPartitions - Int64.MinValue / NumOfPartitions);
 
             public int CompareTo(object obj)
             {
@@ -456,94 +403,126 @@ namespace RequestsService
             public int CompareTo([AllowNull] ActorLocationInfo other)
             {
                 var compare = Index.CompareTo(other.Index);
-                if (compare != 0) return compare;
-                compare = PartitionIndex.CompareTo(other.Index);
                 return compare;
             }
 
             public bool Equals([AllowNull] ActorLocationInfo other)
             {
-                return Index == other.Index && PartitionIndex == other.PartitionIndex;
-            }
-
-            public ActorLocationInfo GetNextPartition(int numberOfServices)
-            {
-                if (PartitionIndex < NumOfPartitions - 1)
-                {
-                    return new ActorLocationInfo() { Index = Index, PartitionKey = PartitionKey + KeyDiff, PartitionIndex = PartitionIndex + 1, NumOfPartitions = NumOfPartitions };
-                }
-                else
-                {
-                    return new ActorLocationInfo() { Index = (Index + 1) % numberOfServices, PartitionKey = Int64.MinValue, PartitionIndex = 0, NumOfPartitions = NumOfPartitions };
-                }
+                return Index == other.Index;
             }
         }
 
-        public class ActorsCountInfo
+        private ActorServicePoolInfo poolInfo = new ActorServicePoolInfo();
+
+        public class ActorServicePoolInfo
         {
-            public ActorLocationInfo Location;
+            public Dictionary<int, ActorsCountInfo> pool;
+            public ActorsCountInfo currentPlacementActor;
 
-            public int Active;
-            public int Inactive;
-
-            public float Ratio => Active / (Active + Inactive);
-        }
-
-        public async Task CheckAllActorsAvailability(CancellationToken cancellationToken, List<int> indexes, Dictionary<int, List<ActorsCountInfo>> map)
-        {
-            foreach (var index in indexes)
+            public ActorServicePoolInfo()
             {
-                await CheckActorAvailability(cancellationToken, index, map);
-            }
-        }
-
-        private async Task CheckActorAvailability(CancellationToken cancellationToken, int index, Dictionary<int, List<ActorsCountInfo>> map)
-        {
-            string actorServiceUri = $"{this.context.CodePackageActivationContext.ApplicationName}/SimulationActorService{index}";
-
-            ServicePartitionList partitions = await this.fabricClient.QueryManager.GetPartitionListAsync(new Uri(actorServiceUri));
-
-            ContinuationToken continuationToken = null;
-
-            if (!map.ContainsKey(index))
-            {
-                map[index] = new List<ActorsCountInfo>(partitions.Count);
+                pool = new Dictionary<int, ActorsCountInfo>();
+                //pool.Add(0, new ActorsCountInfo()
+                //{
+                //    Location = new ActorLocationInfo() { Index = 0 },
+                //    ActiveActors = new List<ActorId>()
+                //});
             }
 
-            int partitionIndex = 0;
-            foreach (Partition partition in partitions)
+            private List<ActorsCountInfo> GetCurrentLocations()
             {
-                var partitionKey = ((Int64RangePartitionInformation)partition.PartitionInformation).LowKey;
-                IActorService actorServiceProxy = ActorServiceProxy.Create(new Uri(actorServiceUri), partitionKey);
+                return pool.Values.ToList<ActorsCountInfo>();
+            }
 
-                int active = 0;
-                int inactive = 0;
+            public ActorsCountInfo GetActorLocation()
+            {
+                var current = currentPlacementActor;
+                var start = current;
+
+                var infos = GetCurrentLocations();
+                int startIndex = infos.FindIndex(x => x.Location == currentPlacementActor.Location);
+                int currentIndex = startIndex;
 
                 do
                 {
-                    PagedResult<ActorInformation> page = await actorServiceProxy.GetActorsAsync(continuationToken, cancellationToken);
-                    active += page.Items.Count(x => x.IsActive);
-                    inactive += page.Items.Count(x => !x.IsActive);
-                    continuationToken = page.ContinuationToken;
-                } while (continuationToken != null);
+                    var info = infos[currentIndex];
+                    if (info.HasMoreSpace())
+                    {
+                        currentPlacementActor = info;
+                        return currentPlacementActor;
+                    }
 
-                var locationInfo = new ActorLocationInfo()
+                    currentIndex = (currentIndex + 1) % infos.Count;
+                } while (startIndex != currentIndex);
+
+                currentPlacementActor = null;
+                return currentPlacementActor;
+            }
+
+            public List<int> GetActorsToDelete()
+            {
+                var toDelete = new List<int>();
+                foreach (var pair in pool)
+                {
+                    bool delete = true;
+                    if (currentPlacementActor.Location.Index == pair.Key) continue;
+
+                    if (pair.Value.IsAlive())
+                    {
+                        delete = false;
+                        break;
+                    }
+
+                    if (delete)
+                    {
+                        toDelete.Add(pair.Key);
+                    }
+                }
+                return toDelete;
+            }
+        }
+
+        private async Task<ActorInfo> GetSimulationActorId(ITransaction tx, CancellationToken cancellationToken)
+        {
+            await SpawnNewActorsIfNeeded();
+
+            ActorId actorId;
+            bool usedActor = false;
+            var activeActors = poolInfo.currentPlacementActor.ActiveActors;
+            do
+            {
+                actorId = ActorId.CreateRandom();
+                usedActor = activeActors.Contains(actorId);
+            }
+            while (!cancellationToken.IsCancellationRequested && usedActor);
+
+            poolInfo.currentPlacementActor.ActiveActors.Add(actorId);
+            return new ActorInfo(actorId, poolInfo.currentPlacementActor.Location.Index);
+        }
+
+        private string GetSimulationActorNameSuffix(int index)
+        {
+            return index == 0 ? "" : $"{index}";
+        }
+
+        private ActorsCountInfo PopulateActorInfo(int index, Dictionary<int, ActorsCountInfo> map)
+        {
+            if (map.ContainsKey(index))
+            {
+                return map[index];
+            }
+
+            var info = new ActorsCountInfo()
+            {
+                Location = new ActorLocationInfo()
                 {
                     Index = index,
-                    PartitionIndex = partitionIndex,
-                    PartitionKey = partitionKey,
-                    NumOfPartitions = partitions.Count
-                };
+                },
+                ActiveActors = new List<ActorId>(),
+            };
 
-                map[index].Add(new ActorsCountInfo()
-                {
-                    Location = locationInfo,
-                    Active = active,
-                    Inactive = inactive,
-                });
-
-                partitionIndex++;
-            }
+            map[index] = info;
+            return info;
         }
 
         private int FindIndex(List<int> indexes)
@@ -573,14 +552,42 @@ namespace RequestsService
             }
         }
 
-        private async Task ManageActors(CancellationToken cancellationToken)
+        private async Task SpawnNewActorsIfNeeded()
         {
             var newIndexes = new List<int>();
-            var map = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, List<int>>>(ActorsCountName);
+            var map = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, ActiveActors>>(ActorsCountName);
             using (var tx = this.StateManager.CreateTransaction())
             {
                 var indexes = await map.TryGetValueAsync(tx, ActorsCount);
-                newIndexes.AddRange(indexes.Value); ;
+                if (indexes.HasValue)
+                {
+                    newIndexes.AddRange(indexes.Value.GetList()); ;
+                }
+
+                var actorLocation = poolInfo.GetActorLocation();
+                if (actorLocation == null)
+                {
+                    var newIndex = FindIndex(newIndexes);
+                    poolInfo.currentPlacementActor = await CreateActor(newIndex);
+                    newIndexes.Add(newIndex);
+                }
+
+                await map.TryUpdateAsync(tx, ActorsCount, new ActiveActors(newIndexes), indexes.Value);
+                await tx.CommitAsync();
+            }
+        }
+
+        private async Task DeleteUnusuedActors(CancellationToken cancellationToken)
+        {
+            var newIndexes = new List<int>();
+            var map = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, ActiveActors>>(ActorsCountName);
+            using (var tx = this.StateManager.CreateTransaction())
+            {
+                var indexes = await map.TryGetValueAsync(tx, ActorsCount);
+                if (indexes.HasValue)
+                {
+                    newIndexes.AddRange(indexes.Value.GetList()); ;
+                }
 
                 var getActorsToDelete = poolInfo.GetActorsToDelete();
                 if (getActorsToDelete.Count > 0)
@@ -588,49 +595,43 @@ namespace RequestsService
                     foreach (var index in getActorsToDelete)
                     {
                         await DeleteActor(index);
-                        poolInfo.pool.Remove(index);
                         newIndexes.Remove(index);
                     }
                 }
 
-                await map.TryUpdateAsync(tx, ActorsCount, newIndexes, indexes.Value);
+                await map.TryUpdateAsync(tx, ActorsCount, new ActiveActors(newIndexes), indexes.Value);
                 await tx.CommitAsync();
-            }
-
-            await CheckAllActorsAvailability(cancellationToken, newIndexes, poolInfo.pool);
-
-            if (poolInfo.GetActorLocation(ActorCountThreshold) == null)
-            {
-                poolInfo.currentPlacementActor = await CreateActor(FindIndex(newIndexes));
             }
         }
 
-        private async Task<ActorLocationInfo> CreateActor(int index)
+        private async Task<ActorsCountInfo> CreateActor(int index)
         {
             var description = new StatefulServiceDescription()
             {
                 HasPersistedState = true,
-                //ApplicationName = new Uri(this.context.CodePackageActivationContext.ApplicationName),
+                ApplicationName = new Uri(this.context.CodePackageActivationContext.ApplicationName),
+                ServiceName = new Uri($"{this.context.CodePackageActivationContext.ApplicationName}/SimulationActorService{GetSimulationActorNameSuffix(index)}"),
                 ServiceTypeName = "SimulationActorServiceType",
-                ServiceName = new Uri($"{this.context.CodePackageActivationContext.ApplicationName}/SimulationActorService{index}"),
+                PartitionSchemeDescription = new UniformInt64RangePartitionSchemeDescription()
+                {
+                    LowKey = -9223372036854775808,
+                    HighKey = 9223372036854775807,
+                    PartitionCount = 1,
+                },
                 MinReplicaSetSize = 1,
                 TargetReplicaSetSize = 1,
             };
             await this.fabricClient.ServiceManager.CreateServiceAsync(description);
 
-            return new ActorLocationInfo()
-            {
-                Index = index,
-                PartitionIndex = 0,
-                PartitionKey = Int64.MinValue,
-                NumOfPartitions = 1
-            };
+            return PopulateActorInfo(index, poolInfo.pool);
         }
 
         private async Task DeleteActor(int index)
         {
-            var description = new DeleteServiceDescription(new Uri($"{this.context.CodePackageActivationContext.ApplicationName}/SimulationActorService{index}"));
+            var description = new DeleteServiceDescription(new Uri($"{this.context.CodePackageActivationContext.ApplicationName}/SimulationActorService{GetSimulationActorNameSuffix(index)}"));
             await this.fabricClient.ServiceManager.DeleteServiceAsync(description);
+
+            poolInfo.pool.Remove(index);
         }
 
         #endregion
@@ -729,8 +730,8 @@ namespace RequestsService
             try
             {
                 var queue = await this.StateManager.GetOrAddAsync<IReliableConcurrentQueue<UserRequest>>(UserRequestsQueueName);
-                var matchmakedUsers = await this.StateManager.GetOrAddAsync<IReliableDictionary<UserRequest, ActorId>>(UserToActorMapName);
-                var usedActors = await this.StateManager.GetOrAddAsync<IReliableDictionary<ActorId, PlayersInMatch>>(InUseActorsMapName);
+                var matchmakedUsers = await this.StateManager.GetOrAddAsync<IReliableDictionary<UserRequest, ActorInfo>>(UserToActorMapName);
+                var usedActors = await this.StateManager.GetOrAddAsync<IReliableDictionary<ActorInfo, PlayersInMatch>>(InUseActorsMapName);
 
                 using (ITransaction tx = this.StateManager.CreateTransaction())
                 {
@@ -764,8 +765,8 @@ namespace RequestsService
             try
             {
                 var queue = await this.StateManager.GetOrAddAsync<IReliableConcurrentQueue<UserRequest>>(UserRequestsQueueName);
-                var usedActors = await this.StateManager.GetOrAddAsync<IReliableDictionary<ActorId, PlayersInMatch>>(InUseActorsMapName);
-                var matchmakedUsers = await this.StateManager.GetOrAddAsync<IReliableDictionary<UserRequest, ActorId>>(UserToActorMapName);
+                var usedActors = await this.StateManager.GetOrAddAsync<IReliableDictionary<ActorInfo, PlayersInMatch>>(InUseActorsMapName);
+                var matchmakedUsers = await this.StateManager.GetOrAddAsync<IReliableDictionary<UserRequest, ActorInfo>>(UserToActorMapName);
 
                 await MatchmakeOneGame(cancellationToken, queue, usedActors, matchmakedUsers);
             }
@@ -774,6 +775,103 @@ namespace RequestsService
                 ServiceEventSource.Current.Message(string.Format("Exception {0}", ex));
             }
         }
+
+        #endregion
+
+        #region COmmented out
+
+        //public async Task CheckAllActorsAvailability(CancellationToken cancellationToken, List<int> indexes, Dictionary<int, List<ActorsCountInfo>> map)
+        //{
+        //    foreach (var index in indexes)
+        //    {
+        //        await CheckActorAvailability(cancellationToken, index, map);
+        //    }
+        //}
+
+
+        //private async Task CheckActorAvailability(CancellationToken cancellationToken, int index, Dictionary<int, List<ActorsCountInfo>> map)
+        //{
+        //    string suffix = GetSimulationActorNameSuffix(index);
+        //    string actorServiceUri = $"{this.context.CodePackageActivationContext.ApplicationName}/SimulationActorService{suffix}";
+
+        //    ServicePartitionList partitions = await this.fabricClient.QueryManager.GetPartitionListAsync(new Uri(actorServiceUri));
+
+        //    ContinuationToken continuationToken = null;
+
+        //    if (!map.ContainsKey(index))
+        //    {
+        //        map[index] = new List<ActorsCountInfo>(partitions.Count);
+        //    }
+
+        //    List<ActorInformation> activeActors = new List<ActorInformation>();
+        //    List<ActorInformation> inactiveActors = new List<ActorInformation>();
+
+        //    int partitionIndex = 0;
+        //    foreach (Partition partition in partitions)
+        //    {
+        //        var partitionKey = ((Int64RangePartitionInformation)partition.PartitionInformation).LowKey;
+        //        IActorService actorServiceProxy = ActorServiceProxy.Create(new Uri(actorServiceUri), partitionKey);
+
+        //        activeActors.Clear();
+        //        inactiveActors.Clear();
+
+        //        do
+        //        {
+        //            PagedResult<ActorInformation> page = await actorServiceProxy.GetActorsAsync(continuationToken, cancellationToken);
+        //            activeActors.AddRange(page.Items.Where(x => x.IsActive));
+        //            inactiveActors.AddRange(page.Items.Where(x => !x.IsActive));
+        //            continuationToken = page.ContinuationToken;
+        //        } while (continuationToken != null);
+
+        //        var locationInfo = new ActorLocationInfo()
+        //        {
+        //            Index = index,
+        //        };
+
+        //        map[index].Add(new ActorsCountInfo()
+        //        {
+        //            Location = locationInfo,
+        //            ActiveActors = new List<ActorId>(),
+        //        });
+
+        //        partitionIndex++;
+        //    }
+        //}
+
+        //private async Task ManageActors(CancellationToken cancellationToken)
+        //{
+        //    var newIndexes = new List<int>();
+        //    var map = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, ActiveActors>>(ActorsCountName);
+        //    using (var tx = this.StateManager.CreateTransaction())
+        //    {
+        //        var indexes = await map.TryGetValueAsync(tx, ActorsCount);
+        //        if (indexes.HasValue)
+        //        {
+        //            newIndexes.AddRange(indexes.Value.GetList()); ;
+        //        }
+
+        //        var actorLocation = poolInfo.GetActorLocation();
+        //        if (actorLocation == null)
+        //        {
+        //            var newIndex = FindIndex(newIndexes);
+        //            poolInfo.currentPlacementActor = await CreateActor(newIndex);
+        //            newIndexes.Add(newIndex);
+        //        }
+
+        //        var getActorsToDelete = poolInfo.GetActorsToDelete();
+        //        if (getActorsToDelete.Count > 0)
+        //        {
+        //            foreach (var index in getActorsToDelete)
+        //            {
+        //                await DeleteActor(index);
+        //                newIndexes.Remove(index);
+        //            }
+        //        }
+
+        //        await map.TryUpdateAsync(tx, ActorsCount, new ActiveActors(newIndexes), indexes.Value);
+        //        await tx.CommitAsync();
+        //    }
+        //}
 
         #endregion
     }

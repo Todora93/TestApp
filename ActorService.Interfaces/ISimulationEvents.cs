@@ -6,8 +6,8 @@
 
     public interface ISimulationEvents : IActorEvents
     {
-        public void StateUpdated(ActorId actorId, GameState gameState);
+        public void StateUpdated(ActorInfo actorId, GameState gameState);
 
-        public void MatchFinished(ActorId actorId, GameState finalGameState);
+        public void MatchFinished(ActorInfo actorId, GameState finalGameState);
     }
 }

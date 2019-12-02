@@ -11,7 +11,7 @@ namespace MyActorService.Interfaces
     /// </summary>
     public interface ISimulationActor : IActor, IActorEventPublisher<ISimulationEvents>
     {
-        public Task SimulateMatch(List<UserRequest> players);
+        public Task<bool> SimulateMatch(List<UserRequest> players, ActorInfo actorInfo);
 
         public Task ApplyInput(UserRequest user, UserInput input);
 
@@ -19,11 +19,11 @@ namespace MyActorService.Interfaces
 
         public Task<GameState> GetGameState(UserRequest user);
 
-        public Task UpdateMove(UserRequest user, ActorId actorId, string move);
+        public Task UpdateMove(UserRequest user, ActorInfo actorId, string move);
 
-        public Task UpdateLife(UserRequest user, ActorId actorId, int life);
+        public Task UpdateLife(UserRequest user, ActorInfo actorId, int life);
 
-        public Task UpdatePosition(UserRequest user, ActorId actorId, int posX, int posY);
+        public Task UpdatePosition(UserRequest user, ActorInfo actorId, int posX, int posY);
 
         //public Task UpdatePlayerState(UserRequest user, ActorId actorId, string move, int life, int posX, int posY);
 

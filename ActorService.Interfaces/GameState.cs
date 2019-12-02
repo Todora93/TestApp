@@ -28,6 +28,7 @@ namespace MyActorService.Interfaces
             {
                 State.Add(new PlayerState(user));
             }
+
             GameTimeSec = 0;
         }
 

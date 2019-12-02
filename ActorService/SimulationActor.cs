@@ -25,8 +25,9 @@ namespace MyActorService
         private IActorTimer _updateTimer;
 
         private const string GameStateName = "GameState";
+        private const string IndexName = "Index";
         // todo: make configurable
-        private const int GameDurationSec = 10;
+        private const int GameDurationSec = 5;
 
         /// <summary>
         /// Initializes a new instance of SimulationActorService
@@ -53,17 +54,30 @@ namespace MyActorService
             await base.OnActivateAsync();
         }
 
-        public async Task SimulateMatch(List<UserRequest> players)
+        public async Task<bool> SimulateMatch(List<UserRequest> players, ActorInfo actorInfo)
         {
-            //_updateTimer = RegisterTimer(Update, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+            if(players[0].EndAfterSeconds && players[1].EndAfterSeconds)
+            {
+                _updateTimer = RegisterTimer(Update, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+            }
 
-            bool added = await this.StateManager.TryAddStateAsync<GameState>(GameStateName, new GameState(players));
+            bool added = await this.StateManager.TryAddStateAsync<int>(IndexName, actorInfo.ActorIndex);
+
+            if (!added)
+            {
+                // value already exists, which means processing has already started.
+                throw new InvalidOperationException($"Cannot assign index {actorInfo.ActorIndex} to actor!");
+            }
+
+            added = await this.StateManager.TryAddStateAsync<GameState>(GameStateName, new GameState(players));
 
             if (!added)
             {
                 // value already exists, which means processing has already started.
                 throw new InvalidOperationException("Processing for this actor has already started.");
             }
+
+            return true;
         }
 
         public async Task ApplyInput(UserRequest user, UserInput input)
@@ -131,11 +145,12 @@ namespace MyActorService
             ActorEventSource.Current.ActorMessage(this, $"ActorID: {this.Id}. New value: {newState.ToString()}");
 
             var ev = GetEvent<ISimulationEvents>();
-            ev.StateUpdated(this.Id, newState);
+            //ev.StateUpdated(this.Id, newState);
 
             if(newState.GameTimeSec == GameDurationSec)
             {
-                ev.MatchFinished(this.Id, newState);
+                var index = await this.StateManager.GetStateAsync<int>(IndexName);
+                ev.MatchFinished(new ActorInfo(Id, index), newState);
 
                 await this.StateManager.TryRemoveStateAsync(GameStateName);
 
@@ -152,7 +167,7 @@ namespace MyActorService
             return opponent.User;
         }
 
-        public async Task UpdateMove(UserRequest user, ActorId actorId, string move)
+        public async Task UpdateMove(UserRequest user, ActorInfo actorId, string move)
         {
             var gameState = await this.StateManager.GetStateAsync<GameState>(GameStateName);
             var playerState = gameState.GetPlayerState(user);
@@ -160,7 +175,7 @@ namespace MyActorService
             await this.StateManager.SetStateAsync<GameState>(GameStateName, gameState);
         }
 
-        public async Task UpdateLife(UserRequest user, ActorId actorId, int life)
+        public async Task UpdateLife(UserRequest user, ActorInfo actorId, int life)
         {
             var gameState = await this.StateManager.GetStateAsync<GameState>(GameStateName);
             var playerState = gameState.GetPlayerState(user);
@@ -168,7 +183,7 @@ namespace MyActorService
             await this.StateManager.SetStateAsync<GameState>(GameStateName, gameState);
         }
 
-        public async Task UpdatePosition(UserRequest user, ActorId actorId, int posX, int posY)
+        public async Task UpdatePosition(UserRequest user, ActorInfo actorId, int posX, int posY)
         {
             var gameState = await this.StateManager.GetStateAsync<GameState>(GameStateName);
             var playerState = gameState.GetPlayerState(user);
@@ -192,11 +207,13 @@ namespace MyActorService
         public async Task<GameState> FighterDead(UserRequest user)
         {
             var gameState = await this.StateManager.GetStateAsync<GameState>(GameStateName);
+            var index = await this.StateManager.GetStateAsync<int>(IndexName);
 
             var ev = GetEvent<ISimulationEvents>();
-            ev.MatchFinished(this.Id, gameState);
+            ev.MatchFinished(new ActorInfo(Id, index), gameState);
 
             await this.StateManager.TryRemoveStateAsync(GameStateName);
+            await this.StateManager.TryRemoveStateAsync(IndexName);
 
             return gameState;
         }

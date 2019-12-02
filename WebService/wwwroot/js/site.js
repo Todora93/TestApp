@@ -3,7 +3,7 @@
 function addRequestValue() {
 
     var data = {
-        UserId: keyInput.value,
+        UserName: keyInput.value,
     };
 
     var http = new XMLHttpRequest();
@@ -26,6 +26,59 @@ function addRequestValue() {
     http.setRequestHeader("content-type", "application/json");
     http.send(JSON.stringify(data));
 }
+
+function generateRequests() {
+    var data = {
+        UserName: keyInput.value,
+    };
+
+    var http = new XMLHttpRequest();
+    http.onreadystatechange = function () {
+        if (http.readyState === 4) {
+            end = new Date().getTime();
+            if (http.status < 400) {
+                //keyInput.value = '';
+                //valueInput.value = '';
+                keyInput.focus();
+                updateFooter(http, (end - start));
+            } else {
+                keyInput.focus();
+                updateFooter(http, (end - start));
+            }
+        }
+    };
+    start = new Date().getTime();
+    http.open("PUT", "/api/Requests/?c=" + start);
+    http.setRequestHeader("content-type", "application/json");
+    http.send(JSON.stringify(data));
+}
+
+function generateRequests1() {
+    var data = {
+        UserName: keyInput.value,
+    };
+
+    var http = new XMLHttpRequest();
+    http.onreadystatechange = function () {
+        if (http.readyState === 4) {
+            end = new Date().getTime();
+            if (http.status < 400) {
+                //keyInput.value = '';
+                //valueInput.value = '';
+                keyInput.focus();
+                updateFooter(http, (end - start));
+            } else {
+                keyInput.focus();
+                updateFooter(http, (end - start));
+            }
+        }
+    };
+    start = new Date().getTime();
+    http.open("PUT", "/api/Requests/?c=" + start);
+    http.setRequestHeader("content-type", "application/json");
+    http.send(JSON.stringify(data));
+}
+
 
 
 function addRequestValue2(userName) {

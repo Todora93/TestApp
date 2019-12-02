@@ -69,18 +69,19 @@ namespace WebService
             var assignedActor = await service.AddRequestAsync(user);
             if (assignedActor.HasMatch)
             {
-                var gameState = await _webService.GetGameState(user, assignedActor.ActorId);
+                var gameState = await _webService.GetGameState(user, assignedActor.ActorInfo);
 
                 var connectionIds = _userConnectionManager.GetUserConnections(user.UserName);
-                await Clients.Clients(connectionIds).ReconnectToGame(assignedActor.ActorId.ToString(), gameState.GetPlayerIndex(user), gameState);
+                await Clients.Clients(connectionIds).ReconnectToGame(assignedActor.ActorInfo.ActorId.ToString(), assignedActor.ActorInfo.ActorIndex, gameState.GetPlayerIndex(user), gameState);
             }
         }
 
         // todo: check if move as string is valid
-        public async Task MoveUpdate(string userName, string actorId, string move)
+        public async Task MoveUpdate(string userName, string id, int index, string move)
         {
             var user = new UserRequest(userName);
-            var actor = new ActorId(Int64.Parse(actorId));
+            var actorId = new ActorId(Int64.Parse(id));
+            var actor = new ActorInfo(actorId, index);
 
             await _webService.UpdateMove(user, actor, move);
 
@@ -90,10 +91,11 @@ namespace WebService
             await Clients.Clients(connectionIds).ReceiveMove(move);
         }
 
-        public async Task LifeUpdate(string userName, string actorId, int life)
+        public async Task LifeUpdate(string userName, string id, int index, int life)
         {
             var user = new UserRequest(userName);
-            var actor = new ActorId(Int64.Parse(actorId));
+            var actorId = new ActorId(Int64.Parse(id));
+            var actor = new ActorInfo(actorId, index);
 
             await _webService.UpdateLife(user, actor, life);
 
@@ -103,10 +105,11 @@ namespace WebService
             await Clients.Clients(connectionIds).LifeUpdate(life);
         }
 
-        public async Task PositionUpdate(string userName, string actorId, int x, int y)
+        public async Task PositionUpdate(string userName, string id, int index, int x, int y)
         {
             var user = new UserRequest(userName);
-            var actor = new ActorId(Int64.Parse(actorId));
+            var actorId = new ActorId(Int64.Parse(id));
+            var actor = new ActorInfo(actorId, index);
 
             await _webService.UpdatePosition(user, actor, x, y);
 
@@ -116,10 +119,11 @@ namespace WebService
             await Clients.Clients(connectionIds).PositionUpdate(x, y);
         }
 
-        public async Task FighterDead(string userName, string actorId)
+        public async Task FighterDead(string userName, string id, int index)
         {
             var user = new UserRequest(userName);
-            var actor = new ActorId(Int64.Parse(actorId));
+            var actorId = new ActorId(Int64.Parse(id));
+            var actor = new ActorInfo(actorId, index);
 
             await _webService.FighterDead(user, actor);
         }

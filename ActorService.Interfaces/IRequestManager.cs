@@ -11,6 +11,8 @@
         // todo delete
         //Task<bool> GetActiveActorId(ActorId actorId);
 
+        Task StartGeneratingRequests(int loopCount);
+
         Task<ExistingMatch> AddRequestAsync(UserRequest user);
 
         Task<string> GetAllRequests();

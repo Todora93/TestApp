@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<ApplicationManifest xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ApplicationTypeName="MatchmakingType" ApplicationTypeVersion="1.0.0" xmlns="http://schemas.microsoft.com/2011/01/fabric">
+<ApplicationManifest xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ApplicationTypeName="MatchmakingType" ApplicationTypeVersion="1.0.18" xmlns="http://schemas.microsoft.com/2011/01/fabric">
   <Parameters>
     <Parameter Name="MatchmakerService_ASPNETCORE_ENVIRONMENT" DefaultValue="" />
     <Parameter Name="MatchmakerService_InstanceCount" DefaultValue="-1" />
@@ -11,7 +11,7 @@
     <Parameter Name="WebService_InstanceCount" DefaultValue="-1" />
     <Parameter Name="WebService_RequestsServiceName" DefaultValue="RequestsService" />
     <Parameter Name="WebService_MatchmakerServiceName" DefaultValue="MatchmakerService" />
-    <Parameter Name="WebService_SimulationServiceName" DefaultValue="SimulationActor" />
+    <Parameter Name="WebService_SimulationServiceName" DefaultValue="SimulationActorService" />
     <Parameter Name="WebService_ReverseProxyPort" DefaultValue="19081" />
     <Parameter Name="SimulationActor_PartitionCount" DefaultValue="1" />
     <Parameter Name="SimulationActor_MinReplicaSetSize" DefaultValue="3" />
@@ -24,7 +24,7 @@
        should match the Name and Version attributes of the ServiceManifest element defined in the 
        ServiceManifest.xml file. -->
   <ServiceManifestImport>
-    <ServiceManifestRef ServiceManifestName="ActorServicePkg" ServiceManifestVersion="1.0.0" />
+    <ServiceManifestRef ServiceManifestName="ActorServicePkg" ServiceManifestVersion="1.0.1" />
   </ServiceManifestImport>
   <ServiceManifestImport>
     <ServiceManifestRef ServiceManifestName="MatchmakerServicePkg" ServiceManifestVersion="1.0.0" />
@@ -34,14 +34,14 @@
     </EnvironmentOverrides>
   </ServiceManifestImport>
   <ServiceManifestImport>
-    <ServiceManifestRef ServiceManifestName="RequestsServicePkg" ServiceManifestVersion="1.0.0" />
+    <ServiceManifestRef ServiceManifestName="RequestsServicePkg" ServiceManifestVersion="1.0.18" />
     <ConfigOverrides />
     <EnvironmentOverrides CodePackageRef="code">
       <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value="[RequestsService_ASPNETCORE_ENVIRONMENT]" />
     </EnvironmentOverrides>
   </ServiceManifestImport>
   <ServiceManifestImport>
-    <ServiceManifestRef ServiceManifestName="WebServicePkg" ServiceManifestVersion="1.0.0" />
+    <ServiceManifestRef ServiceManifestName="WebServicePkg" ServiceManifestVersion="1.0.3" />
     <ConfigOverrides>
       <ConfigOverride Name="Config">
         <Settings>
@@ -79,7 +79,7 @@
         <SingletonPartition />
       </StatelessService>
     </Service>
-    <Service Name="SimulationActorService" GeneratedIdRef="2ba4cabb-b851-48b7-8c36-6b01dc32cd97|Persisted" ServicePackageActivationMode="ExclusiveProcess">
+    <Service Name="SimulationActorService" GeneratedIdRef="2ba4cabb-b851-48b7-8c36-6b01dc32cd97|Persisted">
       <StatefulService ServiceTypeName="SimulationActorServiceType" TargetReplicaSetSize="[SimulationActorService_TargetReplicaSetSize]" MinReplicaSetSize="[SimulationActorService_MinReplicaSetSize]">
         <UniformInt64Partition PartitionCount="[SimulationActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
       </StatefulService>

@@ -5,9 +5,9 @@ namespace MyActorService.Interfaces
 {
     public interface IMyHub
     {
-        Task StartGame(string actorId, int playerIndex, string player1Name, string player2Name);
+        Task StartGame(string actorId, int actorIndex, int playerIndex, string player1Name, string player2Name);
 
-        Task ReconnectToGame(string actorId, int playerIndex, GameState gameState);
+        Task ReconnectToGame(string actorId, int actorIndex, int playerIndex, GameState gameState);
 
         Task State(string gameState);
 

@@ -34,15 +34,16 @@ namespace WebService
 
         #region Actor -> Client
 
-        public async Task StartGame(ActorId actorId, List<UserRequest> users)
+        public async Task StartGame(ActorInfo actorInfo, List<UserRequest> users)
         {
-            var mLong = actorId.GetLongId();
+            var mLong = actorInfo.ActorId.GetLongId();
+            var index = actorInfo.ActorIndex;
 
             var connectionIds = GetConnectionIds(users[0]);
-            await Startup.hubContext.Clients.Clients(connectionIds).StartGame(mLong.ToString(), 0, users[0].UserName, users[1].UserName);
+            await Startup.hubContext.Clients.Clients(connectionIds).StartGame(mLong.ToString(), index, 0, users[0].UserName, users[1].UserName);
 
             connectionIds = GetConnectionIds(users[1]);
-            await Startup.hubContext.Clients.Clients(connectionIds).StartGame(mLong.ToString(), 1, users[0].UserName, users[1].UserName);
+            await Startup.hubContext.Clients.Clients(connectionIds).StartGame(mLong.ToString(), index, 1, users[0].UserName, users[1].UserName);
         }
 
         public async Task GameStateChanged(GameState gameState)
@@ -63,52 +64,52 @@ namespace WebService
 
         #region Client -> Actor
 
-        public async Task SendInput(UserRequest user, ActorId actorId, UserInput input)
+        public async Task SendInput(UserRequest user, ActorInfo actorInfo, UserInput input)
         {
-            string actorServiceUri = $"{this.Context.CodePackageActivationContext.ApplicationName}/SimulationActorService";
-            ISimulationActor simulationActor = ActorProxy.Create<ISimulationActor>(actorId, new Uri(actorServiceUri));
+            string actorServiceUri = $"{this.Context.CodePackageActivationContext.ApplicationName}/SimulationActorService{GetSuffix(actorInfo.ActorIndex)}";
+            ISimulationActor simulationActor = ActorProxy.Create<ISimulationActor>(actorInfo.ActorId, new Uri(actorServiceUri));
 
             await simulationActor.ApplyInput(user, input);
         }
 
-        public async Task<UserRequest> GetOpponent(UserRequest user, ActorId actorId)
+        public async Task<UserRequest> GetOpponent(UserRequest user, ActorInfo actorInfo)
         {
-            string actorServiceUri = $"{this.Context.CodePackageActivationContext.ApplicationName}/SimulationActorService";
-            ISimulationActor simulationActor = ActorProxy.Create<ISimulationActor>(actorId, new Uri(actorServiceUri));
+            string actorServiceUri = $"{this.Context.CodePackageActivationContext.ApplicationName}/SimulationActorService{GetSuffix(actorInfo.ActorIndex)}";
+            ISimulationActor simulationActor = ActorProxy.Create<ISimulationActor>(actorInfo.ActorId, new Uri(actorServiceUri));
 
             return await simulationActor.GetOpponent(user);
         }
 
-        public async Task<GameState> GetGameState(UserRequest user, ActorId actorId)
+        public async Task<GameState> GetGameState(UserRequest user, ActorInfo actorInfo)
         {
-            string actorServiceUri = $"{this.Context.CodePackageActivationContext.ApplicationName}/SimulationActorService";
-            ISimulationActor simulationActor = ActorProxy.Create<ISimulationActor>(actorId, new Uri(actorServiceUri));
+            string actorServiceUri = $"{this.Context.CodePackageActivationContext.ApplicationName}/SimulationActorService{GetSuffix(actorInfo.ActorIndex)}";
+            ISimulationActor simulationActor = ActorProxy.Create<ISimulationActor>(actorInfo.ActorId, new Uri(actorServiceUri));
 
             return await simulationActor.GetGameState(user);
         }
 
-        public async Task UpdateMove(UserRequest user, ActorId actorId, string move) 
+        public async Task UpdateMove(UserRequest user, ActorInfo actorInfo, string move) 
         {
-            string actorServiceUri = $"{this.Context.CodePackageActivationContext.ApplicationName}/SimulationActorService";
-            ISimulationActor simulationActor = ActorProxy.Create<ISimulationActor>(actorId, new Uri(actorServiceUri));
+            string actorServiceUri = $"{this.Context.CodePackageActivationContext.ApplicationName}/SimulationActorService{GetSuffix(actorInfo.ActorIndex)}";
+            ISimulationActor simulationActor = ActorProxy.Create<ISimulationActor>(actorInfo.ActorId, new Uri(actorServiceUri));
 
-            await simulationActor.UpdateMove(user, actorId, move);
+            await simulationActor.UpdateMove(user, actorInfo, move);
         }
 
-        public async Task UpdateLife(UserRequest user, ActorId actorId, int life)
+        public async Task UpdateLife(UserRequest user, ActorInfo actorInfo, int life)
         {
-            string actorServiceUri = $"{this.Context.CodePackageActivationContext.ApplicationName}/SimulationActorService";
-            ISimulationActor simulationActor = ActorProxy.Create<ISimulationActor>(actorId, new Uri(actorServiceUri));
+            string actorServiceUri = $"{this.Context.CodePackageActivationContext.ApplicationName}/SimulationActorService{GetSuffix(actorInfo.ActorIndex)}";
+            ISimulationActor simulationActor = ActorProxy.Create<ISimulationActor>(actorInfo.ActorId, new Uri(actorServiceUri));
 
-            await simulationActor.UpdateLife(user, actorId, life);
+            await simulationActor.UpdateLife(user, actorInfo, life);
         }
 
-        public async Task UpdatePosition(UserRequest user, ActorId actorId, int posX, int posY)
+        public async Task UpdatePosition(UserRequest user, ActorInfo actorInfo, int posX, int posY)
         {
-            string actorServiceUri = $"{this.Context.CodePackageActivationContext.ApplicationName}/SimulationActorService";
-            ISimulationActor simulationActor = ActorProxy.Create<ISimulationActor>(actorId, new Uri(actorServiceUri));
+            string actorServiceUri = $"{this.Context.CodePackageActivationContext.ApplicationName}/SimulationActorService{GetSuffix(actorInfo.ActorIndex)}";
+            ISimulationActor simulationActor = ActorProxy.Create<ISimulationActor>(actorInfo.ActorId, new Uri(actorServiceUri));
 
-            await simulationActor.UpdatePosition(user, actorId, posX, posY);
+            await simulationActor.UpdatePosition(user, actorInfo, posX, posY);
         }
 
         //public async Task UpdatePlayerState(UserRequest user, ActorId actorId, string move, int life, int posX, int posY)
@@ -119,10 +120,10 @@ namespace WebService
         //    await simulationActor.UpdatePlayerState(user, move, life, posX, posY);
         //}
              
-        public async Task<GameState> FighterDead(UserRequest user, ActorId actorId)
+        public async Task<GameState> FighterDead(UserRequest user, ActorInfo actorInfo)
         {
-            string actorServiceUri = $"{this.Context.CodePackageActivationContext.ApplicationName}/SimulationActorService";
-            ISimulationActor simulationActor = ActorProxy.Create<ISimulationActor>(actorId, new Uri(actorServiceUri));
+            string actorServiceUri = $"{this.Context.CodePackageActivationContext.ApplicationName}/SimulationActorService{GetSuffix(actorInfo.ActorIndex)}";
+            ISimulationActor simulationActor = ActorProxy.Create<ISimulationActor>(actorInfo.ActorId, new Uri(actorServiceUri));
 
             return await simulationActor.FighterDead(user);
         }
@@ -182,6 +183,11 @@ namespace WebService
         private List<string> GetConnectionIds(UserRequest user)
         {
             return Startup.userConnectionManager.GetUserConnections(user.UserName);
+        }
+
+        private string GetSuffix(int index)
+        {
+            return index == 0 ? "" : $"{index}";
         }
 
         #endregion

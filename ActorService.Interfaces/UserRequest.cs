@@ -16,7 +16,7 @@
         }
 
         [DataMember]
-        public long UserId { get; private set; }
+        public bool EndAfterSeconds { get; private set; }
 
         [DataMember]
         public string UserName { get; private set; }
@@ -26,6 +26,19 @@
         public UserRequest(string userName)
         {
             UserName = userName;
+            EndAfterSeconds = false;
+        }
+
+        public UserRequest(string userName, bool endAfterSeconds)
+        {
+            UserName = userName;
+            EndAfterSeconds = endAfterSeconds;
+        }
+
+        public UserRequest(UserRequest userRequest)
+        {
+            UserName = userRequest.UserName;
+            EndAfterSeconds = userRequest.EndAfterSeconds;
         }
 
         public override string ToString()

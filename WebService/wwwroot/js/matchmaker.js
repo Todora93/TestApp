@@ -347,13 +347,13 @@
             pressed[e.keyCode] = true;
             var move = self._getMove(pressed, mk.controllers.keys, self._player);
             self._moveFighter(f, move);
-            self._transport.connection.invoke(m.INPUT_MOVE, self._userName, self._actorId, move);
+            self._transport.connection.invoke(m.INPUT_MOVE, self._userName, self._actorId, self._actorIndex, move);
         }, false);
         document.addEventListener('keyup', function (e) {
             delete pressed[e.keyCode];
             var move = self._getMove(pressed, mk.controllers.keys, self._player);
             self._moveFighter(f, move);
-            self._transport.connection.invoke(m.INPUT_MOVE, self._userName, self._actorId, move);
+            self._transport.connection.invoke(m.INPUT_MOVE, self._userName, self._actorId, self._actorIndex, move);
         }, false);
 
         //console.log("adding listeners");
@@ -457,12 +457,12 @@
         });
 
         this._lifeUpdateTimer = setInterval(function () {
-            self._transport.connection.invoke(m.LIFE_UPDATE, self._userName, self._actorId, f.getLife());
+            self._transport.connection.invoke(m.LIFE_UPDATE, self._userName, self._actorId, self._actorIndex, f.getLife());
         }, 2000);
 
         this._positionUpdateTimer = setInterval(function () {
             if (!f.isJumping()) {
-                self._transport.connection.invoke(m.POSITION_UPDATE, self._userName, self._actorId, f.getX(), f.getY());
+                self._transport.connection.invoke(m.POSITION_UPDATE, self._userName, self._actorId, self._actorIndex, f.getX(), f.getY());
             }
         }, 500);
 
@@ -478,18 +478,19 @@
             m = this.Messages;
 
         this._transport.init(this._userName);
-        this._transport.connection.on(m.START_GAME, (actorId, isHost, player1Name, player2Name) => {
-            self.onGameStarted(self, actorId, isHost, player1Name, player2Name);
+        this._transport.connection.on(m.START_GAME, (actorId, index, isHost, player1Name, player2Name) => {
+            self.onGameStarted(self, actorId, index, isHost, player1Name, player2Name);
         });
 
-        this._transport.connection.on(m.GAME_RECONNECT, (actorId, isHost, gameState) => {
-            self.onGameReconnected(self, actorId, isHost, gameState);
+        this._transport.connection.on(m.GAME_RECONNECT, (actorId, index, isHost, gameState) => {
+            self.onGameReconnected(self, actorId, index, isHost, gameState);
         });
     };
 
-    mk.controllers.Network.prototype.onGameReconnected = function (self, actorId, isHost, gameState)
+    mk.controllers.Network.prototype.onGameReconnected = function (self, actorId, index, isHost, gameState)
     {
         self._actorId = actorId;
+        self._actorIndex = index;
         self._player = isHost;
         self._addHandlers();
         self._addConnectionHandlers();
@@ -527,9 +528,10 @@
         }
     }
 
-    mk.controllers.Network.prototype.onGameStarted = function (self, actorId, isHost, player1Name, player2Name) {
+    mk.controllers.Network.prototype.onGameStarted = function (self, actorId, index, isHost, player1Name, player2Name) {
 
         self._actorId = actorId;
+        self._actorIndex = index;
         self._player = isHost;
         self._addHandlers();
         self._addConnectionHandlers();
@@ -568,7 +570,7 @@
             callback.call(null, fighter);
         }
 
-        this._transport.connection.invoke(m.FIGHTER_DEAD, this._userName, this._actorId);
+        this._transport.connection.invoke(m.FIGHTER_DEAD, this._userName, this._actorId, this._actorIndex);
     };
 
     mk.Promise = function () {
