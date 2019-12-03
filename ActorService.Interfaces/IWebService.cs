@@ -29,6 +29,8 @@ namespace MyActorService.Interfaces
 
         public Task<UserRequest> GetOpponent(UserRequest user, ActorInfo actorId);
 
+        public Task<bool> IsFinished(UserRequest user, ActorInfo actorId);
+
         public Task<GameState> GetGameState(UserRequest user, ActorInfo actorId);
 
         public Task<GameState> FighterDead(UserRequest user, ActorInfo actorId);

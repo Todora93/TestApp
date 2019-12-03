@@ -80,6 +80,14 @@ namespace WebService
             return await simulationActor.GetOpponent(user);
         }
 
+        public async Task<bool> IsFinished(UserRequest user, ActorInfo actorInfo)
+        {
+            string actorServiceUri = $"{this.Context.CodePackageActivationContext.ApplicationName}/SimulationActorService{GetSuffix(actorInfo.ActorIndex)}";
+            ISimulationActor simulationActor = ActorProxy.Create<ISimulationActor>(actorInfo.ActorId, new Uri(actorServiceUri));
+
+            return await simulationActor.IsFinished(user);
+        }
+
         public async Task<GameState> GetGameState(UserRequest user, ActorInfo actorInfo)
         {
             string actorServiceUri = $"{this.Context.CodePackageActivationContext.ApplicationName}/SimulationActorService{GetSuffix(actorInfo.ActorIndex)}";

@@ -31,6 +31,8 @@ namespace WebService
             services.AddControllersWithViews();
             services.AddSignalR(hubOptions =>
             {
+                hubOptions.MaximumReceiveMessageSize = 52428800;
+                hubOptions.StreamBufferCapacity = 50;
                 hubOptions.EnableDetailedErrors = true;
             });
 

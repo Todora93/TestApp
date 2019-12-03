@@ -21,6 +21,8 @@ namespace MyActorService.Interfaces
         [DataMember]
         public long GameTimeSec { get; set; }
 
+        public bool Finished { get; set; }
+
         public GameState(List<UserRequest> users)
         {
             State = new List<PlayerState>();

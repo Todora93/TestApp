@@ -9,11 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebService", "WebService\We
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RequestsService", "RequestsService\RequestsService.csproj", "{69A1521F-3C13-4A24-A362-BF7FA832CB0F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MatchmakerService", "MatchmakerService\MatchmakerService.csproj", "{37CA1192-982D-4BF3-93E8-7C61AD9C2D75}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ActorService", "ActorService\ActorService.csproj", "{876EDDF5-8AAB-4DD9-A364-14E5A590253F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ActorService", "ActorService\ActorService.csproj", "{876EDDF5-8AAB-4DD9-A364-14E5A590253F}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ActorService.Interfaces", "ActorService.Interfaces\ActorService.Interfaces.csproj", "{5F578239-D373-4913-B218-D986764CFA9A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ActorService.Interfaces", "ActorService.Interfaces\ActorService.Interfaces.csproj", "{5F578239-D373-4913-B218-D986764CFA9A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -47,14 +45,6 @@ Global
 		{69A1521F-3C13-4A24-A362-BF7FA832CB0F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{69A1521F-3C13-4A24-A362-BF7FA832CB0F}.Release|x64.ActiveCfg = Release|Any CPU
 		{69A1521F-3C13-4A24-A362-BF7FA832CB0F}.Release|x64.Build.0 = Release|Any CPU
-		{37CA1192-982D-4BF3-93E8-7C61AD9C2D75}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{37CA1192-982D-4BF3-93E8-7C61AD9C2D75}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{37CA1192-982D-4BF3-93E8-7C61AD9C2D75}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{37CA1192-982D-4BF3-93E8-7C61AD9C2D75}.Debug|x64.Build.0 = Debug|Any CPU
-		{37CA1192-982D-4BF3-93E8-7C61AD9C2D75}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{37CA1192-982D-4BF3-93E8-7C61AD9C2D75}.Release|Any CPU.Build.0 = Release|Any CPU
-		{37CA1192-982D-4BF3-93E8-7C61AD9C2D75}.Release|x64.ActiveCfg = Release|Any CPU
-		{37CA1192-982D-4BF3-93E8-7C61AD9C2D75}.Release|x64.Build.0 = Release|Any CPU
 		{876EDDF5-8AAB-4DD9-A364-14E5A590253F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{876EDDF5-8AAB-4DD9-A364-14E5A590253F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{876EDDF5-8AAB-4DD9-A364-14E5A590253F}.Debug|x64.ActiveCfg = Debug|Any CPU

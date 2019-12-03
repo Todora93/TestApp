@@ -20,7 +20,7 @@
                                     AzureActiveDirectory="true"
                                     ServerCertThumbprint="0123456789012345678901234567890123456789" />
   -->
-  <ClusterConnectionParameters ConnectionEndpoint="" />
+  <ClusterConnectionParameters ConnectionEndpoint="matchmaking.westeurope.cloudapp.azure.com:19000" X509Credential="true" ServerCertThumbprint="C358BAA33B8B3184E62698BA81D9DA324C3F943A" FindType="FindByThumbprint" FindValue="C358BAA33B8B3184E62698BA81D9DA324C3F943A" StoreLocation="CurrentUser" StoreName="My" />
   <ApplicationParameterFile Path="..\ApplicationParameters\Cloud.xml" />
   <CopyPackageParameters CompressPackage="true" />
 </PublishProfile>

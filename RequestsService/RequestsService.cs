@@ -36,6 +36,7 @@ namespace RequestsService
 
         private static TimeSpan TxTimeout = TimeSpan.FromSeconds(4);
         private static TimeSpan MatchmakeInterval = TimeSpan.FromSeconds(1);
+        private static TimeSpan ResubsriptionInterval = TimeSpan.FromMilliseconds(100);
 
         private readonly StatefulServiceContext context;
         private readonly FabricClient fabricClient;
@@ -110,6 +111,31 @@ namespace RequestsService
             catch (Exception ex)
             {
                 ServiceEventSource.Current.Message(string.Format("AddRequestAsync: Exception {0}: {1}", request, ex));
+                throw;
+            }
+        }
+
+        public async Task RemoveActiveMatchAsync(ActorInfo actorInfo)
+        {
+            try
+            {
+                var matchmakedUsers = await this.StateManager.GetOrAddAsync<IReliableDictionary<UserRequest, ActorInfo>>(UserToActorMapName);
+                var usedActors = await this.StateManager.GetOrAddAsync<IReliableDictionary<ActorInfo, PlayersInMatch>>(InUseActorsMapName);
+
+                using (ITransaction tx = this.StateManager.CreateTransaction())
+                {
+                    bool hasInfo = await usedActors.ContainsKeyAsync(tx, actorInfo);
+                    if (hasInfo)
+                    {
+                        await MatchFinished(tx, actorInfo, null, matchmakedUsers, usedActors);
+                    }
+
+                    await tx.CommitAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                ServiceEventSource.Current.Message(string.Format("RemoveActiveMatchAsync: Exception {0}: {1}", actorInfo, ex));
                 throw;
             }
         }
@@ -208,7 +234,7 @@ namespace RequestsService
                     return false;
                 }
 
-                await simulationActor.SubscribeAsync<ISimulationEvents>(this);
+                await simulationActor.SubscribeAsync<ISimulationEvents>(this, ResubsriptionInterval);
 
                 // Notify clients
                 IWebService webService = ServiceProxy.Create<IWebService>(new Uri($"{this.context.CodePackageActivationContext.ApplicationName}/WebService"));
@@ -308,49 +334,56 @@ namespace RequestsService
             try
             {
                 var matchmakedUsers = await this.StateManager.GetOrAddAsync<IReliableDictionary<UserRequest, ActorInfo>>(UserToActorMapName);
-                var userActors = await this.StateManager.GetOrAddAsync<IReliableDictionary<ActorInfo, PlayersInMatch>>(InUseActorsMapName);
+                var usedActors = await this.StateManager.GetOrAddAsync<IReliableDictionary<ActorInfo, PlayersInMatch>>(InUseActorsMapName);
 
-                using (var tx = this.StateManager.CreateTransaction())
+                using (ITransaction tx = this.StateManager.CreateTransaction())
                 {
-                    ConditionalValue<PlayersInMatch> playersInMatch = await userActors.TryRemoveAsync(tx, actorId);
-                    if (!playersInMatch.HasValue)
-                    {
-                        ServiceEventSource.Current.ServiceMessage(this.Context, $"Somethings went wrong while removing in use actors");
-                    }
-                    else
-                    {
-                        foreach(var player in playersInMatch.Value.Players)
-                        {
-                            ConditionalValue<ActorInfo> remove = await matchmakedUsers.TryRemoveAsync(tx, player);
-                            if (!remove.HasValue)
-                            {
-                                ServiceEventSource.Current.ServiceMessage(this.Context, $"Somethings went wrong while removing request, it's not present in dictionary");
-                                continue;
-                            }
-                        }
-                    }
-
+                    await MatchFinished(tx, actorId, finalGameState, matchmakedUsers, usedActors);
                     await tx.CommitAsync();
                 }
-
-                bool r = poolInfo.pool[actorId.ActorIndex].ActiveActors.Remove(actorId.ActorId);
-                if (!r)
-                {
-                    ServiceEventSource.Current.ServiceMessage(this.Context, $"Something went wrong, cannot remove actor with id {actorId}");
-                }
-
-                ServiceEventSource.Current.ServiceMessage(this.Context, $"Match finished, ActorId: {actorId}");
-
-                string serviceUri = $"{this.context.CodePackageActivationContext.ApplicationName}/WebService";
-
-                IWebService service = ServiceProxy.Create<IWebService>(new Uri(serviceUri));
-
-                await service.MatchFinished(finalGameState);
             }
             catch (Exception ex)
             {
                 ServiceEventSource.Current.Message(string.Format("MatchFinished: Exception {0}: {1}", actorId, ex));
                 throw;
+            }
+        }
+
+        public async Task MatchFinished(ITransaction tx, ActorInfo actorId, GameState finalGameState, IReliableDictionary<UserRequest, ActorInfo> matchmakedUsers, IReliableDictionary<ActorInfo, PlayersInMatch> usedActors)
+        {
+            ConditionalValue<PlayersInMatch> playersInMatch = await usedActors.TryRemoveAsync(tx, actorId);
+            if (!playersInMatch.HasValue)
+            {
+                ServiceEventSource.Current.ServiceMessage(this.Context, $"Somethings went wrong while removing in use actors");
+            }
+            else
+            {
+                foreach(var player in playersInMatch.Value.Players)
+                {
+                    ConditionalValue<ActorInfo> remove = await matchmakedUsers.TryRemoveAsync(tx, player);
+                    if (!remove.HasValue)
+                    {
+                        ServiceEventSource.Current.ServiceMessage(this.Context, $"Somethings went wrong while removing request, it's not present in dictionary");
+                        continue;
+                    }
+                }
+            }
+
+            bool r = poolInfo.pool[actorId.ActorIndex].ActiveActors.Remove(actorId.ActorId);
+            if (!r)
+            {
+                ServiceEventSource.Current.ServiceMessage(this.Context, $"Something went wrong, cannot remove actor with id {actorId}");
+            }
+
+            ServiceEventSource.Current.ServiceMessage(this.Context, $"Match finished, ActorId: {actorId}");
+                
+            if(finalGameState != null)
+            {
+                string serviceUri = $"{this.context.CodePackageActivationContext.ApplicationName}/WebService";
+
+                IWebService service = ServiceProxy.Create<IWebService>(new Uri(serviceUri));
+
+                await service.MatchFinished(finalGameState);
             }
         }
 

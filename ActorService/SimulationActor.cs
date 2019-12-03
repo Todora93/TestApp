@@ -149,6 +149,7 @@ namespace MyActorService
 
             if(newState.GameTimeSec == GameDurationSec)
             {
+                newState.Finished = true;
                 var index = await this.StateManager.GetStateAsync<int>(IndexName);
                 ev.MatchFinished(new ActorInfo(Id, index), newState);
 
@@ -199,6 +200,11 @@ namespace MyActorService
         //    await this.StateManager.SetStateAsync<GameState>(GameStateName, gameState);
         //}
 
+        public async Task<bool> IsFinished(UserRequest user)
+        {
+            return !(await this.StateManager.TryGetStateAsync<GameState>(GameStateName)).HasValue;
+        }
+
         public async Task<GameState> GetGameState(UserRequest user)
         {
             return await this.StateManager.GetStateAsync<GameState>(GameStateName);
@@ -207,6 +213,8 @@ namespace MyActorService
         public async Task<GameState> FighterDead(UserRequest user)
         {
             var gameState = await this.StateManager.GetStateAsync<GameState>(GameStateName);
+            gameState.Finished = true;
+            
             var index = await this.StateManager.GetStateAsync<int>(IndexName);
 
             var ev = GetEvent<ISimulationEvents>();

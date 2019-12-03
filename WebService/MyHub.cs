@@ -69,10 +69,19 @@ namespace WebService
             var assignedActor = await service.AddRequestAsync(user);
             if (assignedActor.HasMatch)
             {
-                var gameState = await _webService.GetGameState(user, assignedActor.ActorInfo);
-
-                var connectionIds = _userConnectionManager.GetUserConnections(user.UserName);
-                await Clients.Clients(connectionIds).ReconnectToGame(assignedActor.ActorInfo.ActorId.ToString(), assignedActor.ActorInfo.ActorIndex, gameState.GetPlayerIndex(user), gameState);
+                var isFinished = await _webService.IsFinished(user, assignedActor.ActorInfo);
+                if (isFinished)
+                {
+                    // quick fix for never ending matches after upgrade
+                    await service.RemoveActiveMatchAsync(assignedActor.ActorInfo);
+                    await service.AddRequestAsync(user);
+                }
+                else
+                {
+                    var gameState = await _webService.GetGameState(user, assignedActor.ActorInfo);
+                    var connectionIds = _userConnectionManager.GetUserConnections(user.UserName);
+                    await Clients.Clients(connectionIds).ReconnectToGame(assignedActor.ActorInfo.ActorId.ToString(), assignedActor.ActorInfo.ActorIndex, gameState.GetPlayerIndex(user), gameState);
+                }
             }
         }
 

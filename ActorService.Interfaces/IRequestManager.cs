@@ -15,6 +15,8 @@
 
         Task<ExistingMatch> AddRequestAsync(UserRequest user);
 
+        Task RemoveActiveMatchAsync(ActorInfo actorInfo);
+
         Task<string> GetAllRequests();
 
         Task DeleteAllRequests();

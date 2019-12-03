@@ -17,6 +17,8 @@ namespace MyActorService.Interfaces
 
         public Task<UserRequest> GetOpponent(UserRequest user);
 
+        public Task<bool> IsFinished(UserRequest user);
+
         public Task<GameState> GetGameState(UserRequest user);
 
         public Task UpdateMove(UserRequest user, ActorInfo actorId, string move);

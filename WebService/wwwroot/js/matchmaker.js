@@ -347,13 +347,13 @@
             pressed[e.keyCode] = true;
             var move = self._getMove(pressed, mk.controllers.keys, self._player);
             self._moveFighter(f, move);
-            self._transport.connection.invoke(m.INPUT_MOVE, self._userName, self._actorId, self._actorIndex, move);
+            //self._transport.connection.invoke(m.INPUT_MOVE, self._userName, self._actorId, self._actorIndex, move);
         }, false);
         document.addEventListener('keyup', function (e) {
             delete pressed[e.keyCode];
             var move = self._getMove(pressed, mk.controllers.keys, self._player);
             self._moveFighter(f, move);
-            self._transport.connection.invoke(m.INPUT_MOVE, self._userName, self._actorId, self._actorIndex, move);
+            //self._transport.connection.invoke(m.INPUT_MOVE, self._userName, self._actorId, self._actorIndex, move);
         }, false);
 
         //console.log("adding listeners");
@@ -366,6 +366,13 @@
         //    delete pressed[e.keyCode];
         //    this._transport.connection.invoke(m.INPUT, this._userName, this._actorId, pressed);
         //}, false);
+    };
+
+    mk.controllers.Network.prototype._moveFighter = function (f, m) {
+        if (m) {
+            this._transport.connection.invoke(this.Messages.INPUT_MOVE, this._userName, this._actorId, this._actorIndex, m);
+            f.setMove(m);
+        }
     };
 
     mk.controllers.Network.prototype.Messages = {
@@ -387,7 +394,10 @@
 
     mk.controllers.Network.prototype.Transports.hub_connection.init = function (userName) {
         this.connection = new signalR.HubConnectionBuilder()
-            .withUrl("/myHub?userId=" + userName)
+            .withUrl("/myHub?userId=" + userName, {
+                skipNegotiation: true,
+                transport: signalR.HttpTransportType.WebSockets
+            })
             .withAutomaticReconnect([100, 100, 1000, 1000, 1000, 1000, 1000, 5000])
             .configureLogging(signalR.LogLevel.Information)
             .build();

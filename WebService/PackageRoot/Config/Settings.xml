@@ -2,10 +2,8 @@
 <Settings xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schemas.microsoft.com/2011/01/fabric">
   <!-- Add your custom configuration sections and parameters here -->
   <Section Name="MyConfigSection">
-    <Parameter Name="MatchmakerServiceName" Value="" MustOverride="true" />
     <Parameter Name="RequestsServiceName" Value="" MustOverride="true" />
     <Parameter Name="SimulationServiceName" Value="" MustOverride="true" />
-    <!--<Parameter Name="ActorBackendServiceName" Value="" MustOverride="true" />-->
     <Parameter Name="ReverseProxyPort" Value="" MustOverride="true" />
   </Section>
 </Settings>

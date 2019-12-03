@@ -32,12 +32,10 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />
+    <Content Include="web.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ActorService\ActorService.csproj" />
-    <ProjectReference Include="..\MatchmakerService\MatchmakerService.csproj">
-      <ServiceLaunchUrl>http://{MachineName}:{ServicePort}/</ServiceLaunchUrl>
-    </ProjectReference>
     <ProjectReference Include="..\RequestsService\RequestsService.csproj" />
     <ProjectReference Include="..\WebService\WebService.csproj">
       <ServiceLaunchUrl>http://{MachineName}:{ServicePort}/</ServiceLaunchUrl>
