@@ -7,8 +7,6 @@
     {
         public string RequestsServiceName { get; private set; }
 
-        public string MatchmakerServiceName { get; private set; }
-
         public string SimulationServiceName { get; private set; }
 
         public int ReverseProxyPort { get; private set; }
@@ -29,7 +27,6 @@
         {
             ConfigurationSection section = settings.Sections["MyConfigSection"];
             RequestsServiceName = section.Parameters["RequestsServiceName"].Value;
-            MatchmakerServiceName = section.Parameters["MatchmakerServiceName"].Value;
             SimulationServiceName = section.Parameters["SimulationServiceName"].Value;
             ReverseProxyPort = int.Parse(section.Parameters["ReverseProxyPort"].Value);
         }

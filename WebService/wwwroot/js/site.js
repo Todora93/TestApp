@@ -253,12 +253,6 @@ function navTab() {
         case "Requests":
             document.getElementById('navRequests').className = "active";
             break;
-        case "Simulation":
-            document.getElementById('navSimulation').className = "active";
-            break;
-        case "Actor":
-            document.getElementById('navActor').className = "active";
-            break;
     }
 }
 

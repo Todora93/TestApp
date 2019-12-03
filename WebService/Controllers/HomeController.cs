@@ -19,11 +19,6 @@ namespace WebService.Controllers
             return View();
         }
 
-        public IActionResult Privacy()
-        {
-            return View();
-        }
-
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
@@ -36,16 +31,6 @@ namespace WebService.Controllers
         }
 
         public IActionResult Matchmaker()
-        {
-            return View();
-        }
-
-        public IActionResult Simulation()
-        {
-            return View();
-        }
-
-        public IActionResult Actor()
         {
             return View();
         }
