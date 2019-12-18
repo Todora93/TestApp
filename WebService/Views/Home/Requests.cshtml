@@ -12,66 +12,26 @@
         <div class="row">
             <div class="panel panel-primary">
                 <div class="panel-body">
-                    <p>The services store key value pairs in partitions based on the first letter of the key. Add a key value pair to the service below and/or get all the key value pairs from the stateful service.</p>
+                    <p>Add requests to user requests queue</p>
                     <!-- Input and Table -->
                     <div class="col-md-6">
                         <!-- Input -->
                         <div class="row">
                             <div class="col-md-6">
-                                <input type="text" class="form-control" id="keyInput" placeholder="key" tabindex="1">
+                                <input type="text" class="form-control" id="keyInput" placeholder="userName" tabindex="1">
+                                <input type="text" class="form-control" id="valueInput" placeholder="value" tabindex="2">
                             </div>
                         </div>
                         <div class="row top-buffer">
                             <div class="col-md-6">
                                 <button class="btn btn-primary btn-block" onclick="generateRequests1()" type="button" id="addRequestValue" tabindex="3">Generate requests</button>
                             </div>
-                            <div class="col-md-6">
+                            @*<div class="col-md-6">
                                 <button class="btn btn-primary btn-block" onclick="getAllRequests()" type="button" id="getAllRequests" tabindex="4">Get All requests in queue</button>
                             </div>
                             <div class="col-md-6">
                                 <button class="btn btn-primary btn-block" onclick="deleteAllRequests()" type="button" id="deleteAllRequests" tabindex="5">Delete All requests in queue</button>
-                            </div>
-                        </div>
-                        <!-- Table -->
-                        <div class="row top-buffer">
-                            <div class="col-md-12 table-responsive" style="overflow: auto; height:100px">
-                                <table class="table table-striped" id="statefulBackendServiceTable">
-                                    <tr>
-                                        <th>Key</th>
-                                        @*<th>Value</th>*@
-                                    </tr>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="panel panel-primary">
-                <div class="panel-body">
-                    <div class="col-md-12">
-                        <p>The service performs matchmaking on demand.</p>
-                        <!-- Button -->
-                        <div class="row">
-                            <div class="col-md-3">
-                                <div class="panel panel-default">
-                                    <div class="panel-heading">
-                                        <button class="btn btn-primary btn-block" onclick="matchmake()" type="button" id="matchmake" tabindex="6">Matchmake</button>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-6">&nbsp;</div>
-                                        <div class="col-6">
-                                            <ul id="messagesList"></ul>
-                                        </div>
-                                    </div>
-
-                                    @*<div class="panel-body">
-                                        <h1 class="text-center no-margin" id="countDisplay">0</h1>
-                                    </div>*@
-                                </div>
-                            </div>
+                            </div>*@
                         </div>
                     </div>
                 </div>

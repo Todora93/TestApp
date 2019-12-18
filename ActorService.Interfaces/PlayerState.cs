@@ -34,7 +34,10 @@ namespace MyActorService.Interfaces
         public PlayerState(UserRequest user)
         {
             User = user;
-            //Value = value;
+            Life = 100;
+            PositionX = 50;
+            PositionY = 230;
+            Move = "stand";
         }
 
         public void UpdateState(string move, int life, int positionX, int positionY)

@@ -43,7 +43,7 @@ namespace RequestsService
 
         // todo: put in config
         private const int MatchSize = 2;
-        private const int ActiveActorsThreshold = 100;
+        private const int ActiveActorsThreshold = 20;
 
         public RequestsService(StatefulServiceContext context)
             : base(context)
@@ -294,7 +294,7 @@ namespace RequestsService
                     {
                         if(actorLoopingCount > 0)
                         {
-                            for (int i = 0; i < 200; i++)
+                            for (int i = 0; i < 20; i++)
                             {
                                 await AddRequestAsync(new UserRequest(Guid.NewGuid().ToString(), true));
                             }
@@ -651,8 +651,8 @@ namespace RequestsService
                     HighKey = 9223372036854775807,
                     PartitionCount = 1,
                 },
-                MinReplicaSetSize = 1,
-                TargetReplicaSetSize = 1,
+                MinReplicaSetSize = 3,
+                TargetReplicaSetSize = 3,
             };
             await this.fabricClient.ServiceManager.CreateServiceAsync(description);
 

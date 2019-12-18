@@ -370,7 +370,9 @@
 
     mk.controllers.Network.prototype._moveFighter = function (f, m) {
         if (m) {
-            this._transport.connection.invoke(this.Messages.INPUT_MOVE, this._userName, this._actorId, this._actorIndex, m);
+            if (f === this.fighters[this._player]) {
+                this._transport.connection.invoke(this.Messages.INPUT_MOVE, this._userName, this._actorId, this._actorIndex, m);
+            }
             f.setMove(m);
         }
     };
@@ -395,7 +397,7 @@
     mk.controllers.Network.prototype.Transports.hub_connection.init = function (userName) {
         this.connection = new signalR.HubConnectionBuilder()
             .withUrl("/myHub?userId=" + userName, {
-                skipNegotiation: true,
+                //skipNegotiation: true,
                 transport: signalR.HttpTransportType.WebSockets
             })
             .withAutomaticReconnect([100, 100, 1000, 1000, 1000, 1000, 1000, 5000])
@@ -468,7 +470,7 @@
 
         this._lifeUpdateTimer = setInterval(function () {
             self._transport.connection.invoke(m.LIFE_UPDATE, self._userName, self._actorId, self._actorIndex, f.getLife());
-        }, 2000);
+        }, 1000);
 
         this._positionUpdateTimer = setInterval(function () {
             if (!f.isJumping()) {

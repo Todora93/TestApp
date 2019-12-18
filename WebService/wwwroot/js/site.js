@@ -55,7 +55,7 @@ function generateRequests() {
 
 function generateRequests1() {
     var data = {
-        UserName: keyInput.value,
+        UserName: valueInput.value,
     };
 
     var http = new XMLHttpRequest();
